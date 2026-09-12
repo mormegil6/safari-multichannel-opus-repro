@@ -1,0 +1,527 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>16-channel Opus: every web decode surface against a WebAssembly libopus</title>
+<style>
+ body { font: 15px/1.5 system-ui, sans-serif; margin: 1.5rem; max-width: 52rem; color: #111; background: #fff; }
+ h1 { font-size: 1.4rem; line-height: 1.3; }
+ h2 { font-size: 1.1rem; margin-top: 2rem; }
+ table { border-collapse: collapse; margin: 1rem 0; width: 100%; }
+ th, td { border: 1px solid #bbb; padding: .35rem .5rem; text-align: left; vertical-align: top; font-size: .9rem; }
+ th { background: #f4f4f4; }
+ td.pass { background: #e6f6e6; }
+ td.fail { background: #fbe5e5; }
+ td.pend { color: #777; }
+ .pass b { color: #0a0; }
+ .fail b { color: #c00; }
+ code { background: #f4f4f4; padding: .1rem .3rem; font-size: .9em; }
+ #summary { font-size: 1.05rem; margin: 1rem 0; padding: .8rem 1rem; border: 3px solid #888; white-space: pre-line; }
+ #summary.repro { border-color: #c00; }
+ #summary.control { border-color: #0a0; }
+ button { font: inherit; padding: .5rem 1rem; margin: .3rem .5rem .3rem 0; border-radius: 6px; border: 1px solid #888; background: #f8f8f8; cursor: pointer; }
+ button:disabled { opacity: .45; cursor: default; }
+ button.big { font-size: 1.25rem; padding: 1rem 1.4rem; min-width: 12rem; }
+ #heard:not(:disabled) { background: #e6f6e6; border-color: #0a0; }
+ #nothing:not(:disabled) { background: #fbe5e5; border-color: #c00; }
+ #humanStatus { margin: .5rem 0; min-height: 1.5em; }
+ pre { background: #f4f4f4; padding: .6rem; overflow-x: auto; font-size: .8rem; }
+ .note { color: #444; font-size: .9rem; }
+ #wasmTable td, #wasmTable th { padding: .15rem .5rem; }
+</style>
+
+<h1>Can this browser decode 16-channel Opus? Four native surfaces, one WebAssembly decoder, one pair of ears</h1>
+
+<p>Two Opus clips are embedded in this page and offered to every decode surface a web page has. The 16-channel clip carries a different sine on each channel (channel <i>k</i> = 200 + 100 <i>k</i> Hz, so channel 0 is 200 Hz and channel 15 is 1700 Hz), which lets the page verify not only that a decoder produced 16 channels but that they came out in the right order. The 2-channel clip (200 and 300 Hz) is the control. The same encode is carried in WebM and in fragmented MP4, and its raw packets are embedded a third time for the two surfaces that take packets rather than files. Nothing is fetched, so the page also runs from a local copy of <code>index.html</code>.</p>
+
+<p>The first two rows are answers about a MIME string and cannot see a channel count; the next two actually decode. A browser that says yes to <code>audio/webm; codecs="opus"</code> and then refuses to decode the 16-channel WebM is not a contradiction in the page, it is the finding: the string surfaces promise what the decoders then refuse.</p>
+
+<p>Expected on Safari (macOS and iOS): both decoding rows refuse the 16-channel clip in both containers, the WASM row decodes it with all 16 channels in order, and you hear both tones. Expected on Chrome and Firefox: everything passes.</p>
+
+<div id="summary">running...</div>
+<button id="copy" disabled>Copy JSON</button>
+<span id="copyStatus" class="note"></span>
+
+<table id="t">
+ <tr><th>surface</th><th>16-ch WebM</th><th>16-ch fMP4</th><th>2-ch WebM</th><th>2-ch fMP4</th></tr>
+ <tr><td><code>HTMLMediaElement.canPlayType</code><br><span class="note">string answer; the MIME string carries no channel count, so both clips get the same one</span></td>
+     <td id="c-canPlayType-opus16-webm" class="pend">...</td><td id="c-canPlayType-opus16-mp4" class="pend">...</td>
+     <td id="c-canPlayType-opus2-webm" class="pend">...</td><td id="c-canPlayType-opus2-mp4" class="pend">...</td></tr>
+ <tr><td><code>MediaSource.isTypeSupported</code> and <code>ManagedMediaSource.isTypeSupported</code><br><span class="note">whichever exist; iOS ships only ManagedMediaSource, and the cell says which one answered</span></td>
+     <td id="c-isTypeSupported-opus16-webm" class="pend">...</td><td id="c-isTypeSupported-opus16-mp4" class="pend">...</td>
+     <td id="c-isTypeSupported-opus2-webm" class="pend">...</td><td id="c-isTypeSupported-opus2-mp4" class="pend">...</td></tr>
+ <tr><td><code>AudioContext.decodeAudioData</code><br><span class="note">actual decode of the file, then the per-channel tone check</span></td>
+     <td id="c-decodeAudioData-opus16-webm" class="pend">...</td><td id="c-decodeAudioData-opus16-mp4" class="pend">...</td>
+     <td id="c-decodeAudioData-opus2-webm" class="pend">...</td><td id="c-decodeAudioData-opus2-mp4" class="pend">...</td></tr>
+ <tr><td>WebCodecs <code>AudioDecoder</code><br><span class="note"><code>isConfigSupported</code>, then an actual decode of the packets; the OpusHead is passed as <code>description</code> for 16 channels</span></td>
+     <td id="c-webcodecs-opus16-packets" class="pend" colspan="2">...</td>
+     <td id="c-webcodecs-opus2-packets" class="pend" colspan="2">...</td></tr>
+ <tr><td>WebAssembly libopus (<a href="https://github.com/eshaz/wasm-audio-decoders">opus-decoder</a> 0.7.12)<br><span class="note">the same packets, decoded in JavaScript; not a native surface</span></td>
+     <td id="c-wasm-opus16-packets" class="pend" colspan="2">...</td>
+     <td id="c-wasm-opus2-packets" class="pend" colspan="2">...</td></tr>
+</table>
+<p id="mediacap" class="note"></p>
+
+<h2>WASM decode, channel by channel</h2>
+<table id="wasmTable"><tr><th>channel</th><th>expected Hz</th><th>detected Hz</th><th></th></tr></table>
+
+<h2>Human verdict</h2>
+<p>Independent of everything above. Play sends the WASM-decoded channel 0 (200 Hz) for one second and then channel 15 (1700 Hz, a much higher pitch) for one second to both ears. A machine verdict can say OK while the speaker stays silent, so this row exists to catch that. iPhone: Play asks for the playback audio session category first, so the ring/silent switch does not mute the tones.</p>
+<button id="play" disabled>Play channel 0 then channel 15</button>
+<div id="humanStatus" class="note">Play is enabled once the WASM row has decoded.</div>
+<button id="heard" class="big" disabled>I heard both tones</button>
+<button id="nothing" class="big" disabled>I heard nothing</button>
+
+<details><summary>Raw results (JSON)</summary><pre id="json"></pre></details>
+<p id="ua" class="note"></p>
+
+<script src="opus-decoder.min.js" charset="utf-8"></script>
+<script src="assets.js"></script>
+<script>
+'use strict';
+const RATE = 48000;
+const LADDER = Array.from({ length: 16 }, (_, i) => 200 + 100 * i);
+const MIME = { webm: 'audio/webm; codecs="opus"', mp4: 'audio/mp4; codecs="opus"' };
+const NATIVE = ['canPlayType', 'isTypeSupported', 'decodeAudioData', 'webcodecs'];
+
+// Everything the Copy JSON button ships. Decoded PCM is kept out of it (see
+// wasmPcm below) so the JSON stays a few KB.
+const R = {
+  page: 'safari-opus-surfaces',
+  userAgent: navigator.userAgent,
+  when: new Date().toISOString(),
+  mediaSource: {},
+  surfaces: {},
+  wasm: {},
+  human: 'pending',
+  humanPlay: null,
+  summary: null,
+};
+let wasmPcm = null;   // channelData of the 16-channel WASM decode, for the human check
+window.__result = R;
+window.__machineDone = false;
+
+const $ = id => document.getElementById(id);
+$('ua').textContent = 'userAgent: ' + navigator.userAgent;
+
+function b64(s) {
+  const bin = atob(s), a = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  return a;
+}
+function ab(u8) { return u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength); }
+function errText(e) {
+  if (e == null) return 'error callback invoked with null';
+  return (e.name ? e.name + ': ' : '') + (e.message || String(e));
+}
+function withTimeout(p, ms, what) {
+  return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(what + ' timed out after ' + ms + ' ms')), ms))]);
+}
+
+// Dominant ladder frequency of one channel: Goertzel over the candidate set on
+// 8192 samples taken a third of the way in, past the pre-skip and the
+// encoder's convergence. A channel below -60 dBFS is reported as silent rather
+// than as whichever bin wins the noise: a decoder that returns 16 channels
+// with 14 of them empty has to show as WRONG, not as a lucky match.
+function domFreq(data, rate) {
+  const off = Math.floor(data.length / 3), N = Math.min(data.length - off, 8192);
+  if (N < 256) return 'short';
+  let e = 0;
+  for (let i = 0; i < N; i++) e += data[off + i] * data[off + i];
+  if (Math.sqrt(e / N) < 1e-3) return 'silent';
+  let best = 0, bp = -1;
+  for (const f of LADDER) {
+    const w = 2 * Math.PI * f / rate, cw = 2 * Math.cos(w);
+    let s1 = 0, s2 = 0;
+    for (let i = 0; i < N; i++) { const s0 = data[off + i] + cw * s1 - s2; s2 = s1; s1 = s0; }
+    const p = s1 * s1 + s2 * s2 - cw * s1 * s2;
+    if (p > bp) { bp = p; best = f; }
+  }
+  return best;
+}
+function ladderCheck(chans, expected, rate) {
+  const detected = chans.map(c => domFreq(c, rate));
+  const ok = chans.length === expected.length && detected.every((v, i) => v === expected[i]);
+  return { channels: chans.length, expected, detected, ok };
+}
+function fmtCheck(chk) {
+  if (chk.ok) return 'all ' + chk.channels + ' tones in order';
+  if (chk.channels !== chk.expected.length) return chk.channels + ' channels instead of ' + chk.expected.length;
+  const bad = [];
+  chk.detected.forEach((v, i) => { if (v !== chk.expected[i]) bad.push('ch' + i + ' ' + v + ' (want ' + chk.expected[i] + ')'); });
+  return bad.length + ' wrong: ' + bad.slice(0, 4).join(', ') + (bad.length > 4 ? ', ...' : '');
+}
+
+// OpusHead (RFC 7845 5.1) is little-endian; the layout after the 8-byte magic
+// is version, channels, pre-skip u16, input rate u32, gain i16, family, and
+// for family 1 and 255 the stream counts and the mapping table. Family 0
+// ends at the family byte and has the implicit mono/stereo layout.
+function parseOpusHead(u8) {
+  const dv = new DataView(ab(u8));
+  const h = { channels: u8[9], preSkip: dv.getUint16(10, true), inputRate: dv.getUint32(12, true), family: u8[18] };
+  if (h.family === 0) { h.streams = 1; h.coupled = h.channels === 2 ? 1 : 0; h.map = h.channels === 2 ? [0, 1] : [0]; }
+  else { h.streams = u8[19]; h.coupled = u8[20]; h.map = Array.from(u8.subarray(21, 21 + h.channels)); }
+  return h;
+}
+
+// ---- table plumbing -------------------------------------------------------
+function setCell(surface, asset, container, cell) {
+  R.surfaces[surface] = R.surfaces[surface] || {};
+  R.surfaces[surface][asset] = R.surfaces[surface][asset] || {};
+  R.surfaces[surface][asset][container] = cell;
+  const td = $('c-' + surface + '-' + asset + '-' + container);
+  td.className = cell.ok ? 'pass' : 'fail';
+  td.innerHTML = '<b>' + (cell.ok ? 'PASS' : 'FAIL') + '</b> ' + escapeHtml(cell.text);
+}
+function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+// ---- surface 1: canPlayType ------------------------------------------------
+function runCanPlayType() {
+  const el = document.createElement('audio');
+  for (const c of ['webm', 'mp4']) {
+    let r;
+    try { r = el.canPlayType(MIME[c]); } catch (e) { r = 'threw ' + errText(e); }
+    const cell = { ok: r === 'probably' || r === 'maybe', text: JSON.stringify(r), result: r, mime: MIME[c] };
+    setCell('canPlayType', 'opus16', c, cell);
+    setCell('canPlayType', 'opus2', c, Object.assign({}, cell));
+  }
+}
+
+// ---- surface 2: isTypeSupported (MediaSource and ManagedMediaSource) ------
+function runIsTypeSupported() {
+  const impls = {};
+  if (typeof MediaSource !== 'undefined') impls.MediaSource = MediaSource;
+  if (typeof ManagedMediaSource !== 'undefined') impls.ManagedMediaSource = ManagedMediaSource;
+  R.mediaSource = { MediaSource: 'MediaSource' in impls, ManagedMediaSource: 'ManagedMediaSource' in impls };
+  for (const c of ['webm', 'mp4']) {
+    const answers = {}, parts = [];
+    for (const name of ['MediaSource', 'ManagedMediaSource']) {
+      if (!impls[name]) {
+        parts.push(name + ' absent' + (name === 'MediaSource' && impls.ManagedMediaSource ? ' (iOS ships only ManagedMediaSource)' : ''));
+        continue;
+      }
+      try { answers[name] = impls[name].isTypeSupported(MIME[c]); }
+      catch (e) { answers[name] = 'threw ' + errText(e); }
+      parts.push(name + ': ' + answers[name]);
+    }
+    const vals = Object.values(answers);
+    const cell = { ok: vals.length > 0 && vals.every(v => v === true), text: parts.join('; '), answers, mime: MIME[c] };
+    setCell('isTypeSupported', 'opus16', c, cell);
+    setCell('isTypeSupported', 'opus2', c, Object.assign({}, cell));
+  }
+}
+
+// ---- surface 3: decodeAudioData -------------------------------------------
+function decodeAudioDataCell(bytes, expected) {
+  return new Promise(res => {
+    const Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!Ctx) { res({ ok: false, text: 'no OfflineAudioContext' }); return; }
+    let ctx;
+    try { ctx = new Ctx(1, RATE, RATE); } catch (e) { res({ ok: false, text: 'OfflineAudioContext: ' + errText(e) }); return; }
+    // Some WebKit builds never call either callback for a file they cannot
+    // demux, so a timeout is the only way this cell can finish.
+    const timer = setTimeout(() => res({ ok: false, text: 'neither callback fired within 15 s', decoded: false }), 15000);
+    const done = v => { clearTimeout(timer); res(v); };
+    try {
+      // the callback form also returns a promise in current engines, and its
+      // rejection would otherwise surface as an unhandled error in the console
+      const p = ctx.decodeAudioData(ab(bytes), buf => {
+        const chans = [];
+        for (let c = 0; c < buf.numberOfChannels; c++) chans.push(buf.getChannelData(c));
+        const chk = ladderCheck(chans, expected, buf.sampleRate);
+        done({ ok: chk.ok, decoded: true, channels: buf.numberOfChannels, sampleRate: buf.sampleRate,
+               duration: +buf.duration.toFixed(3), expected, detected: chk.detected, ladderOk: chk.ok,
+               text: 'decoded ' + buf.numberOfChannels + ' ch, ' + buf.duration.toFixed(2) + ' s; ' + fmtCheck(chk) });
+      }, err => done({ ok: false, decoded: false, error: errText(err), text: errText(err) }));
+      if (p && typeof p.catch === 'function') p.catch(() => { /* reported through the error callback */ });
+    } catch (e) { done({ ok: false, decoded: false, error: errText(e), text: 'threw ' + errText(e) }); }
+  });
+}
+async function runDecodeAudioData() {
+  for (const asset of ['opus16', 'opus2']) for (const c of ['webm', 'mp4'])
+    setCell('decodeAudioData', asset, c, await decodeAudioDataCell(b64(ASSETS[asset][c]), ASSETS[asset].expected));
+}
+
+// Informational only, not one of the four surfaces: MediaCapabilities is the
+// one string-level query that does take a channel count, so it is recorded
+// for whoever files this, but it decodes nothing.
+async function runMediaCapabilities() {
+  const out = {};
+  const mc = navigator.mediaCapabilities;
+  if (!mc || !mc.decodingInfo) out.absent = true;
+  else for (const type of ['file', 'media-source']) for (const c of ['webm', 'mp4']) {
+    try { out[type + ' ' + c] = (await mc.decodingInfo({ type, audio: { contentType: MIME[c], channels: '16', samplerate: 48000, bitrate: 192000 } })).supported; }
+    catch (e) { out[type + ' ' + c] = 'threw ' + errText(e); }
+  }
+  R.mediaCapabilities = out;
+  $('mediacap').textContent = 'MediaCapabilities.decodingInfo with channels "16" (informational, not counted above): '
+    + (out.absent ? 'absent' : Object.entries(out).map(([k, v]) => k + ' = ' + v).join('; '));
+}
+
+// ---- surface 4: WebCodecs --------------------------------------------------
+// Per-channel PCM out of AudioData frames in whatever format the engine
+// chose. copyTo with a requested format conversion is not relied on: it
+// returned silence for an f32 to f32-planar request on one Chromium build
+// while the native-format copy was fine, so the native format is read and
+// converted by hand.
+function framesToChannels(frames) {
+  const n = frames[0].numberOfChannels, rate = frames[0].sampleRate;
+  const total = frames.reduce((s, f) => s + f.numberOfFrames, 0);
+  const chans = Array.from({ length: n }, () => new Float32Array(total));
+  let pos = 0;
+  for (const fr of frames) {
+    const nf = fr.numberOfFrames, fmt = fr.format || 'f32';
+    const planar = fmt.endsWith('-planar');
+    const isS16 = fmt.startsWith('s16'), isS32 = fmt.startsWith('s32'), isU8 = fmt.startsWith('u8');
+    const mk = len => isS16 ? new Int16Array(len) : isS32 ? new Int32Array(len) : isU8 ? new Uint8Array(len) : new Float32Array(len);
+    const toF = v => isS16 ? v / 32768 : isS32 ? v / 2147483648 : isU8 ? (v - 128) / 128 : v;
+    if (planar) {
+      for (let c = 0; c < n; c++) { const a = mk(nf); fr.copyTo(a, { planeIndex: c }); for (let i = 0; i < nf; i++) chans[c][pos + i] = toF(a[i]); }
+    } else {
+      const a = mk(nf * n); fr.copyTo(a, { planeIndex: 0 });
+      for (let c = 0; c < n; c++) for (let i = 0; i < nf; i++) chans[c][pos + i] = toF(a[i * n + c]);
+    }
+    pos += nf;
+  }
+  return { chans, rate };
+}
+async function webcodecsCell(pk, expected, withDescription) {
+  if (typeof AudioDecoder === 'undefined') return { ok: false, present: false, text: 'AudioDecoder absent' };
+  const cfg = { codec: 'opus', sampleRate: 48000, numberOfChannels: pk.channels };
+  if (withDescription) cfg.description = b64(pk.description);
+  const r = { present: true, config: { codec: 'opus', sampleRate: 48000, numberOfChannels: pk.channels, description: withDescription ? 'OpusHead, ' + b64(pk.description).length + ' bytes' : 'none' } };
+  try { r.isConfigSupported = (await AudioDecoder.isConfigSupported(cfg)).supported; }
+  catch (e) { r.isConfigSupported = 'threw ' + errText(e); }
+  if (r.isConfigSupported !== true) { r.ok = false; r.text = 'isConfigSupported ' + r.isConfigSupported; return r; }
+  const frames = [];
+  let errMsg = null;
+  const dec = new AudioDecoder({ output: f => frames.push(f), error: e => { errMsg = errMsg || errText(e); } });
+  try {
+    dec.configure(cfg);
+    const t0 = performance.now();
+    pk.packets.forEach((p, i) => dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: i * pk.frameUs, data: b64(p) })));
+    await withTimeout(dec.flush(), 15000, 'flush');
+    r.decodeMs = +(performance.now() - t0).toFixed(1);
+  } catch (e) { errMsg = errMsg || errText(e); }
+  r.frames = frames.length;
+  if (errMsg) r.error = errMsg;
+  if (frames.length) {
+    const { chans, rate } = framesToChannels(frames);
+    const chk = ladderCheck(chans, expected, rate);
+    Object.assign(r, { channels: chans.length, samples: chans[0].length, sampleRate: rate, expected, detected: chk.detected, ladderOk: chk.ok });
+    if (r.decodeMs) r.realtimeFactor = +((r.samples / rate) / (r.decodeMs / 1000)).toFixed(0);
+    r.ok = chk.ok && !errMsg;
+    r.text = 'isConfigSupported true; decoded ' + frames.length + ' frames, ' + chans.length + ' ch; ' + fmtCheck(chk)
+      + (r.realtimeFactor ? '; ' + r.realtimeFactor + 'x realtime' : '') + (errMsg ? '; error: ' + errMsg : '');
+  } else {
+    r.ok = false;
+    r.text = 'isConfigSupported true, but the decode produced no frames' + (errMsg ? ': ' + errMsg : '');
+  }
+  frames.forEach(f => { try { f.close(); } catch (e) { /* already closed */ } });
+  try { dec.close(); } catch (e) { /* never opened */ }
+  return r;
+}
+async function runWebCodecs() {
+  setCell('webcodecs', 'opus16', 'packets', await webcodecsCell(ASSETS.opus16.packets, ASSETS.opus16.expected, true));
+  setCell('webcodecs', 'opus2', 'packets', await webcodecsCell(ASSETS.opus2.packets, ASSETS.opus2.expected, false));
+}
+
+// ---- WASM row ---------------------------------------------------------------
+async function wasmCell(pk, expected) {
+  const lib = globalThis['opus-decoder'];
+  if (!lib || !lib.OpusDecoder) return { ok: false, text: 'opus-decoder.min.js did not load (check the script tag and that the file was served as UTF-8)' };
+  const head = parseOpusHead(b64(pk.description));
+  const r = { head: { channels: head.channels, family: head.family, streams: head.streams, coupled: head.coupled, map: head.map, preSkip: head.preSkip } };
+  let dec = null;
+  try {
+    // The multistream layout comes from the OpusHead, exactly as a container
+    // demuxer would hand it over. Without these options the decoder would be
+    // built for stereo and return 2 channels from 16-channel packets.
+    dec = new lib.OpusDecoder({ channels: head.channels, streamCount: head.streams, coupledStreamCount: head.coupled,
+                                channelMappingTable: head.map, preSkip: head.preSkip });
+    // ready only ever resolves in this library; a failed instantiate would
+    // otherwise hang the row forever
+    await withTimeout(dec.ready, 15000, 'WASM instantiation');
+    const packets = pk.packets.map(b64);
+    const t0 = performance.now();
+    const out = await dec.decodeFrames(packets);
+    r.decodeMs = +(performance.now() - t0).toFixed(1);
+    const chans = out.channelData;
+    const chk = ladderCheck(chans, expected, out.sampleRate);
+    Object.assign(r, { channels: chans.length, samples: out.samplesDecoded, sampleRate: out.sampleRate, expected, detected: chk.detected,
+                       ladderOk: chk.ok, decoderErrors: (out.errors || []).length,
+                       realtimeFactor: +((out.samplesDecoded / out.sampleRate) / (r.decodeMs / 1000)).toFixed(0) });
+    r.ok = chk.ok && r.decoderErrors === 0;
+    r.text = 'decoded ' + chans.length + ' ch, ' + (out.samplesDecoded / out.sampleRate).toFixed(2) + ' s; ' + fmtCheck(chk)
+      + '; ' + r.realtimeFactor + 'x realtime' + (r.decoderErrors ? '; ' + r.decoderErrors + ' decoder errors' : '');
+    r.pcm = chans;
+  } catch (e) {
+    r.ok = false; r.error = errText(e); r.text = 'failed: ' + errText(e);
+  }
+  if (dec) { try { dec.free(); } catch (e) { /* never came up */ } }
+  return r;
+}
+async function runWasm() {
+  const r16 = await wasmCell(ASSETS.opus16.packets, ASSETS.opus16.expected);
+  wasmPcm = r16.pcm || null; delete r16.pcm;
+  setCell('wasm', 'opus16', 'packets', r16);
+  R.wasm = r16;
+  const tbl = $('wasmTable');
+  if (r16.detected) r16.detected.forEach((v, i) => {
+    const tr = document.createElement('tr');
+    const good = v === r16.expected[i];
+    tr.innerHTML = '<td>' + i + '</td><td>' + r16.expected[i] + '</td><td>' + escapeHtml(v) + '</td><td class="' + (good ? 'pass' : 'fail') + '"><b>' + (good ? 'OK' : 'WRONG') + '</b></td>';
+    tbl.appendChild(tr);
+  });
+  const r2 = await wasmCell(ASSETS.opus2.packets, ASSETS.opus2.expected);
+  delete r2.pcm;
+  setCell('wasm', 'opus2', 'packets', r2);
+  // Play needs 16 real channels to pick 0 and 15 from; a decode that came
+  // back stereo or silent must leave the button disabled, and with it the
+  // whole human row (see below).
+  if (wasmPcm && wasmPcm.length === 16 && r16.ok) {
+    $('play').disabled = false;
+    $('humanStatus').textContent = 'Ready. Press Play, then choose a verdict.';
+  } else {
+    $('humanStatus').textContent = 'Play stays disabled: the WASM decode did not produce 16 correct channels, so there is nothing trustworthy to play.';
+  }
+}
+
+// ---- human verdict ------------------------------------------------------------
+// The two verdict buttons start disabled and are enabled in exactly one
+// place: inside the Play handler, after the AudioContext reports running.
+// A run where Play never became enabled (WASM failed, or the browser never
+// got that far) therefore cannot produce a human result at all; it stays
+// "pending". This project once recorded a "heard" verdict against a Play
+// button that had never been enabled, which made that whole test worthless,
+// so nothing else on this page may enable #heard or #nothing.
+$('play').onclick = async () => {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) { $('humanStatus').textContent = 'No AudioContext in this browser.'; return; }
+  // ASK FOR THE MEDIA CATEGORY BEFORE THE CONTEXT EXISTS. On iOS a Web Audio
+  // context defaults to the Ambient category, which the hardware ringer switch
+  // silences. A reviewer running this page with the switch on silent hears
+  // nothing and records "heard nothing" for a reason that has no connection to
+  // any decode surface, which would make the human verdict worthless in exactly
+  // the way a disabled Play button once did. Measured on an iPhone Xs, iOS
+  // 18.7, 2026-09-12: both tones were inaudible until the ringer was unmuted.
+  // 'playback' is the media category and the switch does not gate it. WebKit
+  // only; other engines expose no category and need none.
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; }
+  catch (e) { /* setting a category is never required for the tones to decode */ }
+  const ac = new AC();
+  try { await ac.resume(); } catch (e) { /* state is inspected below */ }
+  const seg = RATE;                                   // 1 s of each tone
+  const off = Math.floor(wasmPcm[0].length / 3);      // mid-clip, past pre-skip and convergence
+  const buf = ac.createBuffer(2, 2 * seg, RATE);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    d.set(wasmPcm[0].subarray(off, off + seg), 0);
+    d.set(wasmPcm[15].subarray(off, off + seg), seg);
+    // 10 ms ramps at the ends and the switch, so a click is not mistaken for a tone
+    const ramp = 480;
+    for (let i = 0; i < ramp; i++) {
+      const g = i / ramp;
+      d[i] *= g; d[seg - 1 - i] *= g; d[seg + i] *= g; d[2 * seg - 1 - i] *= g;
+    }
+  }
+  const src = ac.createBufferSource();
+  src.buffer = buf;
+  src.connect(ac.destination);
+  src.start();
+  // audioSessionType is recorded so a run that heard nothing can be told apart
+  // from a run that was silenced by the category it ended up in.
+  R.humanPlay = {
+    contextState: ac.state,
+    contextSampleRate: ac.sampleRate,
+    audioSessionType: (navigator.audioSession && navigator.audioSession.type) || 'not supported',
+    at: new Date().toISOString(),
+  };
+  if (ac.state === 'running') {
+    $('heard').disabled = false;
+    $('nothing').disabled = false;
+    $('humanStatus').textContent = 'Playing: 200 Hz now, 1700 Hz after one second. Then choose.';
+    src.onended = () => { if (R.human === 'pending') $('humanStatus').textContent = 'Done. Did you hear a low tone and then a high one?'; };
+  } else {
+    $('humanStatus').textContent = 'AudioContext is "' + ac.state + '", not running, so nothing is audible and the verdict buttons stay disabled. Try again after tapping the page.';
+  }
+  refreshJson();
+};
+function humanVerdict(v) {
+  R.human = v;
+  $('heard').disabled = true; $('nothing').disabled = true;
+  $('humanStatus').textContent = 'Recorded: ' + (v === 'heard' ? 'heard both tones.' : 'heard nothing.') + ' Thank you.';
+  updateSummary();
+}
+$('heard').onclick = () => humanVerdict('heard');
+$('nothing').onclick = () => humanVerdict('nothing');
+
+// ---- summary and JSON -------------------------------------------------------
+// true when the surface refused the asset in that container (packet-based
+// rows have one cell that stands for both containers), null when not run
+function refusedIn(surface, asset, container) {
+  const s = R.surfaces[surface] && R.surfaces[surface][asset];
+  if (!s) return null;
+  const cell = s[container] || s.packets;
+  return cell ? !cell.ok : null;
+}
+const DECODERS = ['decodeAudioData', 'webcodecs'];
+function updateSummary() {
+  // Counted per container, because the two string surfaces answer per MIME
+  // type and can say yes for WebM while saying no for fMP4 on the same
+  // engine. The headline is decided by the two rows that actually decode.
+  const refusing = {};
+  for (const c of ['webm', 'mp4']) refusing[c] = NATIVE.filter(k => refusedIn(k, 'opus16', c) === true);
+  const decodersRefusing = DECODERS.filter(k => refusedIn(k, 'opus16', 'webm') === true && refusedIn(k, 'opus16', 'mp4') === true);
+  const anyRefusal = refusing.webm.length + refusing.mp4.length > 0;
+  const control = NATIVE.filter(k => refusedIn(k, 'opus2', 'webm') === false || refusedIn(k, 'opus2', 'mp4') === false);
+  const stringsSayYes = ['canPlayType', 'isTypeSupported'].filter(k => refusedIn(k, 'opus16', 'webm') === false || refusedIn(k, 'opus16', 'mp4') === false);
+  const wasmText = R.wasm.ok ? '16 channels, ACN order OK' : (R.wasm.channels ? R.wasm.channels + ' channels, ACN order WRONG' : 'failed (' + (R.wasm.error || R.wasm.text || 'unknown') + ')');
+  const humanText = R.human === 'pending' ? 'pending' + ($('play').disabled ? ' (Play never enabled)' : '') : R.human;
+  const lines = [
+    'Native surfaces: ' + refusing.mp4.length + ' of 4 refuse the 16-channel asset in fMP4, ' + refusing.webm.length + ' of 4 in WebM.',
+    'Decoding surfaces (decodeAudioData, WebCodecs): ' + decodersRefusing.length + ' of 2 refuse it in both containers.',
+    'WASM: ' + wasmText + '.',
+    'Human: ' + humanText + '.',
+    '2-channel control: ' + control.length + ' of 4 native surfaces accept it.',
+  ];
+  let cls = '';
+  if (decodersRefusing.length === DECODERS.length && R.wasm.ok) {
+    cls = 'repro';
+    lines.unshift('REPRODUCED: nothing native decodes 16-channel Opus here; the WASM decoder does.'
+      + (stringsSayYes.length ? ' ' + stringsSayYes.join(' and ') + ' still answer yes for at least one container, which the decoders then refuse.' : ''));
+  } else if (!anyRefusal && R.wasm.ok) { cls = 'control'; lines.unshift('Not reproduced: every native surface accepts 16-channel Opus here.'); }
+  else lines.unshift('Mixed result, see the table.');
+  if (/Chrom(e|ium)\//.test(navigator.userAgent) && refusedIn('decodeAudioData', 'opus16', 'webm') && refusedIn('decodeAudioData', 'opus2', 'webm') === false)
+    lines.push('Chromium note: 16-channel refused while 2-channel decodes is the DirectOpusAudioDecoding field trial, a different bug: https://github.com/mormegil6/opus-multichannel-repro');
+  R.summary = { nativeRefusing16: refusing, decodersRefusing16: decodersRefusing, stringSurfacesAccepting16: stringsSayYes,
+                nativeAccepting2: control, wasmOk: !!R.wasm.ok, human: R.human };
+  const el = $('summary');
+  el.textContent = lines.join('\n');
+  el.className = cls;
+  refreshJson();
+}
+function refreshJson() { $('json').textContent = JSON.stringify(R, null, 1); }
+$('copy').onclick = async () => {
+  const txt = JSON.stringify(R, null, 1);
+  try { await navigator.clipboard.writeText(txt); $('copyStatus').textContent = 'copied'; }
+  catch (e) {
+    // no clipboard permission (file:// in some browsers): open the JSON and select it
+    $('json').parentElement.open = true;
+    const range = document.createRange(); range.selectNodeContents($('json'));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    $('copyStatus').textContent = 'clipboard unavailable, JSON selected below';
+  }
+};
+
+(async () => {
+  if (!window.ASSETS) { $('summary').textContent = 'assets.js is missing; run ./make-assets.sh'; return; }
+  const steps = [runCanPlayType, runIsTypeSupported, runDecodeAudioData, runWebCodecs, runWasm, runMediaCapabilities];
+  for (const step of steps) {
+    try { await step(); }
+    catch (e) { R.errors = R.errors || []; R.errors.push(step.name + ': ' + errText(e)); }
+  }
+  updateSummary();
+  $('copy').disabled = false;
+  window.__machineDone = true;
+})();
+</script>

@@ -1,0 +1,509 @@
+{
+ "page": "safari-opus-surfaces",
+ "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+ "when": "2026-09-12T13:19:25.127Z",
+ "mediaSource": {
+  "MediaSource": true,
+  "ManagedMediaSource": false
+ },
+ "surfaces": {
+  "canPlayType": {
+   "opus16": {
+    "webm": {
+     "ok": true,
+     "text": "\"probably\"",
+     "result": "probably",
+     "mime": "audio/webm; codecs=\"opus\""
+    },
+    "mp4": {
+     "ok": true,
+     "text": "\"probably\"",
+     "result": "probably",
+     "mime": "audio/mp4; codecs=\"opus\""
+    }
+   },
+   "opus2": {
+    "webm": {
+     "ok": true,
+     "text": "\"probably\"",
+     "result": "probably",
+     "mime": "audio/webm; codecs=\"opus\""
+    },
+    "mp4": {
+     "ok": true,
+     "text": "\"probably\"",
+     "result": "probably",
+     "mime": "audio/mp4; codecs=\"opus\""
+    }
+   }
+  },
+  "isTypeSupported": {
+   "opus16": {
+    "webm": {
+     "ok": true,
+     "text": "MediaSource: true; ManagedMediaSource absent",
+     "answers": {
+      "MediaSource": true
+     },
+     "mime": "audio/webm; codecs=\"opus\""
+    },
+    "mp4": {
+     "ok": true,
+     "text": "MediaSource: true; ManagedMediaSource absent",
+     "answers": {
+      "MediaSource": true
+     },
+     "mime": "audio/mp4; codecs=\"opus\""
+    }
+   },
+   "opus2": {
+    "webm": {
+     "ok": true,
+     "text": "MediaSource: true; ManagedMediaSource absent",
+     "answers": {
+      "MediaSource": true
+     },
+     "mime": "audio/webm; codecs=\"opus\""
+    },
+    "mp4": {
+     "ok": true,
+     "text": "MediaSource: true; ManagedMediaSource absent",
+     "answers": {
+      "MediaSource": true
+     },
+     "mime": "audio/mp4; codecs=\"opus\""
+    }
+   }
+  },
+  "decodeAudioData": {
+   "opus16": {
+    "webm": {
+     "ok": true,
+     "decoded": true,
+     "channels": 16,
+     "sampleRate": 48000,
+     "duration": 3,
+     "expected": [
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000,
+      1100,
+      1200,
+      1300,
+      1400,
+      1500,
+      1600,
+      1700
+     ],
+     "detected": [
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000,
+      1100,
+      1200,
+      1300,
+      1400,
+      1500,
+      1600,
+      1700
+     ],
+     "ladderOk": true,
+     "text": "decoded 16 ch, 3.00 s; all 16 tones in order"
+    },
+    "mp4": {
+     "ok": true,
+     "decoded": true,
+     "channels": 16,
+     "sampleRate": 48000,
+     "duration": 3.014,
+     "expected": [
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000,
+      1100,
+      1200,
+      1300,
+      1400,
+      1500,
+      1600,
+      1700
+     ],
+     "detected": [
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000,
+      1100,
+      1200,
+      1300,
+      1400,
+      1500,
+      1600,
+      1700
+     ],
+     "ladderOk": true,
+     "text": "decoded 16 ch, 3.01 s; all 16 tones in order"
+    }
+   },
+   "opus2": {
+    "webm": {
+     "ok": true,
+     "decoded": true,
+     "channels": 2,
+     "sampleRate": 48000,
+     "duration": 3,
+     "expected": [
+      200,
+      300
+     ],
+     "detected": [
+      200,
+      300
+     ],
+     "ladderOk": true,
+     "text": "decoded 2 ch, 3.00 s; all 2 tones in order"
+    },
+    "mp4": {
+     "ok": true,
+     "decoded": true,
+     "channels": 2,
+     "sampleRate": 48000,
+     "duration": 3.014,
+     "expected": [
+      200,
+      300
+     ],
+     "detected": [
+      200,
+      300
+     ],
+     "ladderOk": true,
+     "text": "decoded 2 ch, 3.01 s; all 2 tones in order"
+    }
+   }
+  },
+  "webcodecs": {
+   "opus16": {
+    "packets": {
+     "present": true,
+     "config": {
+      "codec": "opus",
+      "sampleRate": 48000,
+      "numberOfChannels": 16,
+      "description": "OpusHead, 37 bytes"
+     },
+     "isConfigSupported": true,
+     "decodeMs": 37.9,
+     "frames": 151,
+     "channels": 16,
+     "samples": 144648,
+     "sampleRate": 48000,
+     "expected": [
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000,
+      1100,
+      1200,
+      1300,
+      1400,
+      1500,
+      1600,
+      1700
+     ],
+     "detected": [
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000,
+      1100,
+      1200,
+      1300,
+      1400,
+      1500,
+      1600,
+      1700
+     ],
+     "ladderOk": true,
+     "realtimeFactor": 80,
+     "ok": true,
+     "text": "isConfigSupported true; decoded 151 frames, 16 ch; all 16 tones in order; 80x realtime"
+    }
+   },
+   "opus2": {
+    "packets": {
+     "present": true,
+     "config": {
+      "codec": "opus",
+      "sampleRate": 48000,
+      "numberOfChannels": 2,
+      "description": "none"
+     },
+     "isConfigSupported": true,
+     "decodeMs": 7.6,
+     "frames": 151,
+     "channels": 2,
+     "samples": 144960,
+     "sampleRate": 48000,
+     "expected": [
+      200,
+      300
+     ],
+     "detected": [
+      200,
+      300
+     ],
+     "ladderOk": true,
+     "realtimeFactor": 397,
+     "ok": true,
+     "text": "isConfigSupported true; decoded 151 frames, 2 ch; all 2 tones in order; 397x realtime"
+    }
+   }
+  },
+  "wasm": {
+   "opus16": {
+    "packets": {
+     "head": {
+      "channels": 16,
+      "family": 255,
+      "streams": 16,
+      "coupled": 0,
+      "map": [
+       0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15
+      ],
+      "preSkip": 312
+     },
+     "decodeMs": 48.8,
+     "channels": 16,
+     "samples": 144648,
+     "sampleRate": 48000,
+     "expected": [
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000,
+      1100,
+      1200,
+      1300,
+      1400,
+      1500,
+      1600,
+      1700
+     ],
+     "detected": [
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000,
+      1100,
+      1200,
+      1300,
+      1400,
+      1500,
+      1600,
+      1700
+     ],
+     "ladderOk": true,
+     "decoderErrors": 0,
+     "realtimeFactor": 62,
+     "ok": true,
+     "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 62x realtime"
+    }
+   },
+   "opus2": {
+    "packets": {
+     "head": {
+      "channels": 2,
+      "family": 0,
+      "streams": 1,
+      "coupled": 1,
+      "map": [
+       0,
+       1
+      ],
+      "preSkip": 312
+     },
+     "decodeMs": 13.3,
+     "channels": 2,
+     "samples": 144648,
+     "sampleRate": 48000,
+     "expected": [
+      200,
+      300
+     ],
+     "detected": [
+      200,
+      300
+     ],
+     "ladderOk": true,
+     "decoderErrors": 0,
+     "realtimeFactor": 227,
+     "ok": true,
+     "text": "decoded 2 ch, 3.01 s; all 2 tones in order; 227x realtime"
+    }
+   }
+  }
+ },
+ "wasm": {
+  "head": {
+   "channels": 16,
+   "family": 255,
+   "streams": 16,
+   "coupled": 0,
+   "map": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+   ],
+   "preSkip": 312
+  },
+  "decodeMs": 48.8,
+  "channels": 16,
+  "samples": 144648,
+  "sampleRate": 48000,
+  "expected": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900,
+   1000,
+   1100,
+   1200,
+   1300,
+   1400,
+   1500,
+   1600,
+   1700
+  ],
+  "detected": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900,
+   1000,
+   1100,
+   1200,
+   1300,
+   1400,
+   1500,
+   1600,
+   1700
+  ],
+  "ladderOk": true,
+  "decoderErrors": 0,
+  "realtimeFactor": 62,
+  "ok": true,
+  "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 62x realtime"
+ },
+ "human": "pending",
+ "humanPlay": {
+  "contextState": "running",
+  "contextSampleRate": 44100,
+  "audioSessionType": "not supported",
+  "at": "2026-09-12T13:19:25.602Z"
+ },
+ "summary": {
+  "nativeRefusing16": {
+   "webm": [],
+   "mp4": []
+  },
+  "decodersRefusing16": [],
+  "stringSurfacesAccepting16": [
+   "canPlayType",
+   "isTypeSupported"
+  ],
+  "nativeAccepting2": [
+   "canPlayType",
+   "isTypeSupported",
+   "decodeAudioData",
+   "webcodecs"
+  ],
+  "wasmOk": true,
+  "human": "pending"
+ },
+ "mediaCapabilities": {
+  "file webm": true,
+  "file mp4": true,
+  "media-source webm": true,
+  "media-source mp4": true
+ }
+}

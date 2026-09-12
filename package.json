@@ -1,0 +1,8 @@
+{
+  "name": "safari-multichannel-opus-repro",
+  "private": true,
+  "description": "Runs the page in installed browsers (measure.mjs) and Playwright's (check-playwright.js); the page itself needs nothing",
+  "devDependencies": {
+    "playwright-core": "^1.60.0"
+  }
+}
