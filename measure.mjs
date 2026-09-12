@@ -16,13 +16,23 @@
 // field-trial seed, and Firefox as the installed Mozilla build over WebDriver
 // BiDi, not Playwright's own Firefox.
 //
-// usage: node measure.mjs [safari] [chrome] [firefox]
+// usage: node measure.mjs [--listen] [safari] [chrome] [firefox]
 //   SAFARIDRIVER=http://127.0.0.1:4599    where safaridriver listens
 //   FIREFOX=/path/to/firefox              the Firefox binary to launch
 //
 // Play is pressed in every run so the page records the state of its
 // AudioContext, but neither verdict button is: nobody listened, so the human
-// row of an automated run stays "pending" on purpose.
+// row of a plain run stays "pending" on purpose. Pass --listen to record a
+// real verdict instead: each window stays open for up to a minute after Play
+// so a person can listen and click "I heard both tones" or "I heard nothing"
+// themselves. This works for Chrome and Firefox, whose windows are ordinary
+// browser windows Playwright happens to be attached to. It does NOT work for
+// Safari: a window under safaridriver's control does not accept real mouse
+// input at all, click or no click, so --listen still leaves Safari's human
+// row "pending". Get Safari's verdict by opening the page in a second,
+// ordinary Safari window yourself, clicking through it there, and pasting
+// its Copy JSON over the human and humanPlay fields of the file this script
+// wrote (diff the rest first; only those two fields should differ).
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -57,7 +67,9 @@ async function untilTrue(probe, timeoutMs, everyMs = 500) {
   return false;
 }
 
-async function safari() {
+const VERDICT_WAIT_MS = 60000;
+
+async function safari(listen) {
   const base = process.env.SAFARIDRIVER || 'http://127.0.0.1:4599';
   const call = async (method, p, body) => {
     const r = await fetch(base + p, { method, headers: { 'content-type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
@@ -86,13 +98,18 @@ async function safari() {
       await sleep(1500);
     }
     if (clickError) console.log('  safari: the Play click did not register: ' + String(clickError.message).slice(0, 120));
+    // --listen does not apply here: a safaridriver-controlled window refuses
+    // real mouse input, so waiting for a click that can never land would only
+    // burn VERDICT_WAIT_MS for nothing. Get Safari's verdict from a second,
+    // ordinary window instead (see the file header).
+    if (listen && !clickError) console.log('  safari: WebDriver windows cannot be clicked; get this verdict from an ordinary Safari window instead (see the file header)');
     return { version, result: JSON.parse(await js('return JSON.stringify(window.__result)')) };
   } finally {
     await call('DELETE', `/session/${sid}`).catch(() => {});
   }
 }
 
-async function viaPlaywright(name) {
+async function viaPlaywright(name, listen) {
   const require = createRequire(import.meta.url);
   const pw = require(require.resolve('playwright-core', { paths: [process.cwd(), here] }));
   let browser = null, context;
@@ -111,8 +128,13 @@ async function viaPlaywright(name) {
   try {
     await page.goto(url);
     await page.waitForFunction(() => window.__machineDone === true, null, { timeout: 120000 });
+    await page.bringToFront();
     await page.click('#play');
     await page.waitForFunction(() => !!(window.__result && window.__result.humanPlay), null, { timeout: 10000 }).catch(() => {});
+    if (listen) {
+      console.log(`  ${name}: listen now, then click "I heard both tones" or "I heard nothing" (up to 60s)`);
+      await page.waitForFunction(() => window.__result.human !== 'pending', null, { timeout: VERDICT_WAIT_MS }).catch(() => {});
+    }
     const result = await page.evaluate(() => JSON.parse(JSON.stringify(window.__result)));
     return { version: browser ? browser.version() : 'unknown', result };
   } finally {
@@ -127,12 +149,14 @@ function osToken() {
   return process.platform;
 }
 
-const names = process.argv.slice(2).length ? process.argv.slice(2) : ['safari', 'chrome', 'firefox'];
+const argv = process.argv.slice(2);
+const listen = argv.includes('--listen');
+const names = argv.filter(a => a !== '--listen').length ? argv.filter(a => a !== '--listen') : ['safari', 'chrome', 'firefox'];
 let failed = false;
 try {
   for (const name of names) {
     try {
-      const { version, result } = name === 'safari' ? await safari() : await viaPlaywright(name);
+      const { version, result } = name === 'safari' ? await safari(listen) : await viaPlaywright(name, listen);
       const file = path.join(here, 'results', `${result.when.slice(0, 10)}-${osToken()}-${name}${version}.json`);
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(file, JSON.stringify(result, null, 1) + '\n');

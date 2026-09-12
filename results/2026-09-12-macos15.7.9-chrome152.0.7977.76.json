@@ -1,7 +1,7 @@
 {
  "page": "safari-opus-surfaces",
  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
- "when": "2026-09-12T13:19:25.127Z",
+ "when": "2026-09-12T18:12:35.707Z",
  "mediaSource": {
   "MediaSource": true,
   "ManagedMediaSource": false
@@ -216,7 +216,7 @@
       "description": "OpusHead, 37 bytes"
      },
      "isConfigSupported": true,
-     "decodeMs": 37.9,
+     "decodeMs": 35.8,
      "frames": 151,
      "channels": 16,
      "samples": 144648,
@@ -258,9 +258,9 @@
       1700
      ],
      "ladderOk": true,
-     "realtimeFactor": 80,
+     "realtimeFactor": 84,
      "ok": true,
-     "text": "isConfigSupported true; decoded 151 frames, 16 ch; all 16 tones in order; 80x realtime"
+     "text": "isConfigSupported true; decoded 151 frames, 16 ch; all 16 tones in order; 84x realtime"
     }
    },
    "opus2": {
@@ -273,7 +273,7 @@
       "description": "none"
      },
      "isConfigSupported": true,
-     "decodeMs": 7.6,
+     "decodeMs": 8.7,
      "frames": 151,
      "channels": 2,
      "samples": 144960,
@@ -287,9 +287,9 @@
       300
      ],
      "ladderOk": true,
-     "realtimeFactor": 397,
+     "realtimeFactor": 347,
      "ok": true,
-     "text": "isConfigSupported true; decoded 151 frames, 2 ch; all 2 tones in order; 397x realtime"
+     "text": "isConfigSupported true; decoded 151 frames, 2 ch; all 2 tones in order; 347x realtime"
     }
    }
   },
@@ -321,7 +321,7 @@
       ],
       "preSkip": 312
      },
-     "decodeMs": 48.8,
+     "decodeMs": 47.9,
      "channels": 16,
      "samples": 144648,
      "sampleRate": 48000,
@@ -363,9 +363,9 @@
      ],
      "ladderOk": true,
      "decoderErrors": 0,
-     "realtimeFactor": 62,
+     "realtimeFactor": 63,
      "ok": true,
-     "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 62x realtime"
+     "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 63x realtime"
     }
    },
    "opus2": {
@@ -381,7 +381,7 @@
       ],
       "preSkip": 312
      },
-     "decodeMs": 13.3,
+     "decodeMs": 8.8,
      "channels": 2,
      "samples": 144648,
      "sampleRate": 48000,
@@ -395,9 +395,9 @@
      ],
      "ladderOk": true,
      "decoderErrors": 0,
-     "realtimeFactor": 227,
+     "realtimeFactor": 342,
      "ok": true,
-     "text": "decoded 2 ch, 3.01 s; all 2 tones in order; 227x realtime"
+     "text": "decoded 2 ch, 3.01 s; all 2 tones in order; 342x realtime"
     }
    }
   }
@@ -428,7 +428,7 @@
    ],
    "preSkip": 312
   },
-  "decodeMs": 48.8,
+  "decodeMs": 47.9,
   "channels": 16,
   "samples": 144648,
   "sampleRate": 48000,
@@ -470,16 +470,16 @@
   ],
   "ladderOk": true,
   "decoderErrors": 0,
-  "realtimeFactor": 62,
+  "realtimeFactor": 63,
   "ok": true,
-  "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 62x realtime"
+  "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 63x realtime"
  },
- "human": "pending",
+ "human": "heard",
  "humanPlay": {
   "contextState": "running",
-  "contextSampleRate": 44100,
+  "contextSampleRate": 48000,
   "audioSessionType": "not supported",
-  "at": "2026-09-12T13:19:25.602Z"
+  "at": "2026-09-12T18:12:36.155Z"
  },
  "summary": {
   "nativeRefusing16": {
@@ -498,7 +498,7 @@
    "webcodecs"
   ],
   "wasmOk": true,
-  "human": "pending"
+  "human": "heard"
  },
  "mediaCapabilities": {
   "file webm": true,

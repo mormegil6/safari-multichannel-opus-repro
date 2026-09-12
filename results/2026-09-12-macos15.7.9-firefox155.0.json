@@ -1,7 +1,7 @@
 {
  "page": "safari-opus-surfaces",
  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0",
- "when": "2026-09-12T13:19:27.369Z",
+ "when": "2026-09-12T18:12:40.700Z",
  "mediaSource": {
   "MediaSource": true,
   "ManagedMediaSource": false
@@ -216,7 +216,7 @@
       "description": "OpusHead, 37 bytes"
      },
      "isConfigSupported": true,
-     "decodeMs": 33,
+     "decodeMs": 34,
      "frames": 151,
      "channels": 16,
      "samples": 144648,
@@ -258,9 +258,9 @@
       1700
      ],
      "ladderOk": true,
-     "realtimeFactor": 91,
+     "realtimeFactor": 89,
      "ok": true,
-     "text": "isConfigSupported true; decoded 151 frames, 16 ch; all 16 tones in order; 91x realtime"
+     "text": "isConfigSupported true; decoded 151 frames, 16 ch; all 16 tones in order; 89x realtime"
     }
    },
    "opus2": {
@@ -273,7 +273,7 @@
       "description": "none"
      },
      "isConfigSupported": true,
-     "decodeMs": 11,
+     "decodeMs": 12,
      "frames": 151,
      "channels": 2,
      "samples": 144960,
@@ -287,9 +287,9 @@
       300
      ],
      "ladderOk": true,
-     "realtimeFactor": 275,
+     "realtimeFactor": 252,
      "ok": true,
-     "text": "isConfigSupported true; decoded 151 frames, 2 ch; all 2 tones in order; 275x realtime"
+     "text": "isConfigSupported true; decoded 151 frames, 2 ch; all 2 tones in order; 252x realtime"
     }
    }
   },
@@ -321,7 +321,7 @@
       ],
       "preSkip": 312
      },
-     "decodeMs": 46,
+     "decodeMs": 45,
      "channels": 16,
      "samples": 144648,
      "sampleRate": 48000,
@@ -363,9 +363,9 @@
      ],
      "ladderOk": true,
      "decoderErrors": 0,
-     "realtimeFactor": 66,
+     "realtimeFactor": 67,
      "ok": true,
-     "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 66x realtime"
+     "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 67x realtime"
     }
    },
    "opus2": {
@@ -428,7 +428,7 @@
    ],
    "preSkip": 312
   },
-  "decodeMs": 46,
+  "decodeMs": 45,
   "channels": 16,
   "samples": 144648,
   "sampleRate": 48000,
@@ -470,16 +470,16 @@
   ],
   "ladderOk": true,
   "decoderErrors": 0,
-  "realtimeFactor": 66,
+  "realtimeFactor": 67,
   "ok": true,
-  "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 66x realtime"
+  "text": "decoded 16 ch, 3.01 s; all 16 tones in order; 67x realtime"
  },
- "human": "pending",
+ "human": "heard",
  "humanPlay": {
   "contextState": "running",
-  "contextSampleRate": 44100,
+  "contextSampleRate": 48000,
   "audioSessionType": "not supported",
-  "at": "2026-09-12T13:19:28.045Z"
+  "at": "2026-09-12T18:12:41.178Z"
  },
  "summary": {
   "nativeRefusing16": {
@@ -498,7 +498,7 @@
    "webcodecs"
   ],
   "wasmOk": true,
-  "human": "pending"
+  "human": "heard"
  },
  "mediaCapabilities": {
   "file webm": true,
