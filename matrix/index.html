@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opus by channel count and mapping family, on every decode surface</title>
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 62rem; padding: 0 1rem; color: #111; background: #fff; }
+  table { border-collapse: collapse; margin: 1rem 0; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: .3rem .6rem; text-align: left; }
+  th { background: #f2f2f2; }
+  .ok { color: #0a0; font-weight: 600; }
+  .no { color: #c00; font-weight: 600; }
+  code, pre { background: #f4f4f4; padding: .1rem .3rem; }
+  pre { padding: .6rem; overflow-x: auto; }
+  #json { width: 100%; height: 12rem; font: 12px/1.4 ui-monospace, monospace; }
+  button { font: inherit; padding: .4rem .9rem; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #16181c; color: #e6e6e6; } th { background: #23262c; } th, td { border-color: #3a3d44; }
+    code, pre { background: #23262c; } .ok { color: #5fd35f; } .no { color: #ff6b6b; }
+  }
+</style>
+</head>
+<body>
+<h1>Opus by channel count and mapping family</h1>
+
+<p>Seventeen Opus streams, each decoded three ways: <code>decodeAudioData</code> on the WebM file, WebCodecs <code>AudioDecoder</code> on the same packets, and a <code>MediaCapabilities.decodingInfo()</code> query for that channel count. Every stream is 48 kHz with one sine per channel, 2 seconds long (3 for the three built earlier: family 0 stereo, and 16 channels in families 255 and 2). Nothing is fetched except the files next to this page, so it needs a web server (Pages, or <code>python3 -m http.server</code>), not a <code>file://</code> URL.</p>
+
+<p>The streams are valid: a stream that a browser refuses here decodes in Chrome and Firefox. Families: 0 is stereo, 1 is the Vorbis-order surround layouts of RFC 7845, 2 is Ambisonics from RFC 8486, 255 is independent streams with no defined layout (RFC 7845, 5.1.1.3). The family 2 files are the family 255 files with one header byte changed; <code>make-matrix.sh</code> says why that is a valid family 2 stream and regenerates all of it.</p>
+
+<div id="status">running...</div>
+<table id="t">
+  <tr><th>stream</th><th>channels</th><th>family in file</th><th><code>decodeAudioData</code></th><th>WebCodecs</th><th><code>MediaCapabilities</code> (file / media-source)</th></tr>
+</table>
+
+<h2>Result as JSON</h2>
+<p><button id="copy">Copy JSON</button></p>
+<textarea id="json" readonly></textarea>
+
+<p id="ua"></p>
+
+<script>
+const CASES = [
+  ['family 0, stereo (control)',            'f0-2ch',   2],
+  ['family 255, mono',                      'f255-1ch', 1],
+  ['family 255, stereo (2 independent streams)', 'f255-2ch', 2],
+  ['family 1, stereo',                      'f1-2ch',   2],
+  ['family 255',                            'f255-3ch', 3],
+  ['family 1, 3.0',                         'f1-3ch',   3],
+  ['family 255',                            'f255-4ch', 4],
+  ['family 1, quad',                        'f1-4ch',   4],
+  ['family 2, first-order Ambisonics',      'f2-4ch',   4],
+  ['family 255',                            'f255-6ch', 6],
+  ['family 1, 5.1',                         'f1-6ch',   6],
+  ['family 255',                            'f255-8ch', 8],
+  ['family 1, 7.1',                         'f1-8ch',   8],
+  ['family 255',                            'f255-10ch', 10],
+  ['family 255',                            'f255-12ch', 12],
+  ['family 255',                            'f255-16ch', 16],
+  ['family 2, third-order Ambisonics',      'f2-16ch',  16],
+];
+const R = { page: 'safari-opus-matrix', when: new Date().toISOString(), userAgent: navigator.userAgent, rows: [] };
+const $ = id => document.getElementById(id);
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+function decode(ab) {
+  return new Promise(resolve => {
+    const Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!Ctx) { resolve({ ok: false, text: 'no OfflineAudioContext' }); return; }
+    const ctx = new Ctx(1, 1, 48000);
+    const timer = setTimeout(() => resolve({ ok: false, text: 'timed out' }), 8000);
+    ctx.decodeAudioData(ab.slice(0),
+      buf => { clearTimeout(timer); resolve({ ok: true, text: 'decoded ' + buf.numberOfChannels + ' ch' }); },
+      err => { clearTimeout(timer); resolve({ ok: false, text: 'refused (error callback ' + (err === null || err === undefined ? 'invoked with null' : 'invoked') + ')' }); });
+  });
+}
+
+async function webcodecs(pk, n) {
+  if (typeof AudioDecoder === 'undefined') return { ok: false, text: 'no AudioDecoder' };
+  const cfg = { codec: 'opus', sampleRate: 48000, numberOfChannels: n };
+  if (n > 2) cfg.description = b64(pk.description);
+  let supported;
+  try { supported = (await AudioDecoder.isConfigSupported(cfg)).supported; }
+  catch (e) { return { ok: false, text: 'isConfigSupported threw' }; }
+  if (!supported) return { ok: false, text: 'isConfigSupported false' };
+  let frames = 0, error = null;
+  const dec = new AudioDecoder({ output: f => { frames++; f.close(); }, error: e => { error = e.message; } });
+  try {
+    dec.configure(cfg); let ts = 0;
+    for (const p of pk.packets) { dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: ts, data: b64(p) })); ts += pk.frameUs; }
+    await dec.flush();
+  } catch (e) { error = String(e && e.message || e); }
+  return error ? { ok: false, text: 'supported, decode failed: ' + error } : { ok: true, text: 'supported, ' + frames + ' frames' };
+}
+
+async function capabilities(n) {
+  const mc = navigator.mediaCapabilities, out = {};
+  if (!mc || !mc.decodingInfo) return { file: 'absent', 'media-source': 'absent' };
+  for (const type of ['file', 'media-source']) {
+    try { out[type] = (await mc.decodingInfo({ type, audio: { contentType: 'audio/webm; codecs="opus"', channels: String(n), samplerate: 48000, bitrate: 24000 * n } })).supported; }
+    catch (e) { out[type] = 'threw'; }
+  }
+  return out;
+}
+
+function familyOf(ab) { // OpusHead mapping-family byte, straight from the file
+  const u = new Uint8Array(ab);
+  for (let i = 0; i < u.length - 21; i++)
+    if (u[i] === 79 && u[i+1] === 112 && u[i+2] === 117 && u[i+3] === 115 && u[i+4] === 72 && u[i+5] === 101) return u[i + 18];
+  return null;
+}
+
+(async () => {
+  $('ua').textContent = 'userAgent: ' + navigator.userAgent;
+  for (const [label, base, n] of CASES) {
+    const ab = await (await fetch('files/' + base + '.webm')).arrayBuffer();
+    const pk = await (await fetch('files/' + base + '-packets.json')).json();
+    const row = { label, file: base, channels: n, family: familyOf(ab),
+      decodeAudioData: await decode(ab), webcodecs: await webcodecs(pk, n), mediaCapabilities: await capabilities(n) };
+    R.rows.push(row);
+    const cell = c => '<td class="' + (c.ok ? 'ok' : 'no') + '">' + c.text + '</td>';
+    const mc = row.mediaCapabilities;
+    $('t').insertAdjacentHTML('beforeend', '<tr><td>' + label + '</td><td>' + n + '</td><td>' + row.family + '</td>' + cell(row.decodeAudioData) + cell(row.webcodecs) + '<td>' + mc.file + ' / ' + mc['media-source'] + '</td></tr>');
+  }
+  const rest = R.rows.slice(1);   // everything except the family 0 stereo control
+  const noDecodeAudioData = rest.filter(r => !r.decodeAudioData.ok);
+  const noWebCodecs = rest.filter(r => !r.webcodecs.ok);
+  const mcYesButRefused = rest.filter(r => r.mediaCapabilities.file === true && (!r.decodeAudioData.ok || !r.webcodecs.ok));
+  R.summary = { controlDecoded: !!R.rows[0].decodeAudioData.ok && !!R.rows[0].webcodecs.ok, otherStreams: rest.length,
+    decodeAudioDataRefuses: noDecodeAudioData.length, webCodecsRefuses: noWebCodecs.length,
+    mediaCapabilitiesSaysSupportedForAStreamADecoderRefuses: mcYesButRefused.length,
+    webCodecsRefusesOnlyAbove2Channels: noWebCodecs.every(r => r.channels > 2),
+    decodeAudioDataRefusesOnlyNonZeroFamily: noDecodeAudioData.every(r => r.family !== 0) };
+  $('status').textContent = noDecodeAudioData.length + noWebCodecs.length === 0 ? 'Every stream decoded here.'
+    : 'Of the ' + rest.length + ' streams other than the family 0 stereo control, decodeAudioData refuses ' + noDecodeAudioData.length
+      + ' and WebCodecs refuses ' + noWebCodecs.length + '; MediaCapabilities reports ' + mcYesButRefused.length + ' of the refused ones as supported.';
+  $('json').value = JSON.stringify(R, null, 1);
+  window.__result = R; window.__matrixDone = true;
+})();
+$('copy').onclick = async () => { try { await navigator.clipboard.writeText($('json').value); $('copy').textContent = 'Copied'; } catch (e) { $('json').select(); } };
+</script>
+</body>
+</html>

@@ -13,6 +13,7 @@ Assets covered:
   - opus16.opus, opus16.webm, opus16.mp4, opus16-packets.json
   - opus2.opus, opus2.webm, opus2.mp4, opus2-packets.json
   - assets.js (the same media, base64-encoded for the page)
+  - matrix/files/* (Opus test streams for matrix/index.html)
   - results/*.json (what the page recorded on each browser it was run in)
 
 The media are synthetic ffmpeg output (sine tones at 200 to 1700 Hz, encoded

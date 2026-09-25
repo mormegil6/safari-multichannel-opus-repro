@@ -1,0 +1,323 @@
+{
+ "page": "safari-opus-matrix",
+ "when": "2026-09-25T19:10:42.869Z",
+ "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+ "rows": [
+  {
+   "label": "family 0, stereo (control)",
+   "file": "f0-2ch",
+   "channels": 2,
+   "family": 0,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 2 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 151 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 255, mono",
+   "file": "f255-1ch",
+   "channels": 1,
+   "family": 255,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 1 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 255, stereo (2 independent streams)",
+   "file": "f255-2ch",
+   "channels": 2,
+   "family": 255,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 2 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 1, stereo",
+   "file": "f1-2ch",
+   "channels": 2,
+   "family": 1,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 2 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 255",
+   "file": "f255-3ch",
+   "channels": 3,
+   "family": 255,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 3 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 1, 3.0",
+   "file": "f1-3ch",
+   "channels": 3,
+   "family": 1,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 3 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 255",
+   "file": "f255-4ch",
+   "channels": 4,
+   "family": 255,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 4 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 1, quad",
+   "file": "f1-4ch",
+   "channels": 4,
+   "family": 1,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 4 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 2, first-order Ambisonics",
+   "file": "f2-4ch",
+   "channels": 4,
+   "family": 2,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 4 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 255",
+   "file": "f255-6ch",
+   "channels": 6,
+   "family": 255,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 6 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 1, 5.1",
+   "file": "f1-6ch",
+   "channels": 6,
+   "family": 1,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 6 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 255",
+   "file": "f255-8ch",
+   "channels": 8,
+   "family": 255,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 8 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 1, 7.1",
+   "file": "f1-8ch",
+   "channels": 8,
+   "family": 1,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 8 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 255",
+   "file": "f255-10ch",
+   "channels": 10,
+   "family": 255,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 10 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 255",
+   "file": "f255-12ch",
+   "channels": 12,
+   "family": 255,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 12 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 101 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 255",
+   "file": "f255-16ch",
+   "channels": 16,
+   "family": 255,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 16 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 151 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  },
+  {
+   "label": "family 2, third-order Ambisonics",
+   "file": "f2-16ch",
+   "channels": 16,
+   "family": 2,
+   "decodeAudioData": {
+    "ok": true,
+    "text": "decoded 16 ch"
+   },
+   "webcodecs": {
+    "ok": true,
+    "text": "supported, 151 frames"
+   },
+   "mediaCapabilities": {
+    "file": true,
+    "media-source": true
+   }
+  }
+ ],
+ "summary": {
+  "controlDecoded": true,
+  "otherStreams": 16,
+  "decodeAudioDataRefuses": 0,
+  "webCodecsRefuses": 0,
+  "mediaCapabilitiesSaysSupportedForAStreamADecoderRefuses": 0,
+  "webCodecsRefusesOnlyAbove2Channels": true,
+  "decodeAudioDataRefusesOnlyNonZeroFamily": true
+ },
+ "v": "Chrome 154.0.8037.58"
+}

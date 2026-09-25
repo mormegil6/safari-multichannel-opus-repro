@@ -41,7 +41,7 @@ Each column is one run of the page, and the JSON the run produced is in `results
 | Decoding surfaces refusing 16-ch in both containers | decodeAudioData, webcodecs | decodeAudioData, webcodecs | none | none |
 | Human: both tones heard | heard both tones | heard both tones | heard both tones | heard both tones |
 
-What the table says. On Safari, on both platforms, the two surfaces that decode refuse the 16-channel clip in both containers. In WebM the 2-channel control passes through the same two surfaces on both platforms, so the WebM refusal follows the 16-channel, family-255 layout, not the codec or the container. The two surfaces that only inspect a string say yes to that same WebM on both platforms, which is the dangerous direction: a player that trusts `canPlayType` or `isTypeSupported` before attempting a decode selects a track that neither decoding API will decode. Opus in fMP4 is refused by Safari at the string level as well, and there the two Safaris part company one row further down: macOS Safari 27 decodes the 2-channel fMP4 through `decodeAudioData` while iOS 18.7 refuses it, so for fMP4 the control does not isolate the channel count on iOS, and a measurement on one Safari is not evidence about the other. Chrome and Firefox accept the 16-channel clip on every surface, in both containers, with the ladder intact, and the page reports "Not reproduced" there. The WASM row decodes the same packets with all 16 channels in order on all four, and on every device someone actually listened, they heard it.
+What the table says. On Safari, on both platforms, the two surfaces that decode refuse the 16-channel clip in both containers. In WebM the 2-channel control passes through the same two surfaces on both platforms, so the WebM refusal follows the stream layout, not the codec or the container. It is not specific to family 255 either: the matrix below shows what Safari accepts, and both decoders refuse the same 16-channel content in every mapping family. The two surfaces that only inspect a string say yes to that same WebM on both platforms, which is the dangerous direction: a player that trusts `canPlayType` or `isTypeSupported` before attempting a decode selects a track that neither decoding API will decode. Opus in fMP4 is refused by Safari at the string level as well, and there the two Safaris part company one row further down: macOS Safari 27 decodes the 2-channel fMP4 through `decodeAudioData` while iOS 18.7 refuses it, so for fMP4 the control does not isolate the channel count on iOS, and a measurement on one Safari is not evidence about the other. Chrome and Firefox accept the 16-channel clip on every surface, in both containers, with the ladder intact, and the page reports "Not reproduced" there. The WASM row decodes the same packets with all 16 channels in order on all four, and on every device someone actually listened, they heard it.
 
 Every human row is a real verdict: a person pressed Play, listened, and clicked. On the iPhone, and on macOS Chrome and Firefox, that person drove the same automated run that produced the machine cells, through `measure.mjs --listen`. Safari on macOS is the one exception worth recording: a browser window under safaridriver's control does not accept ordinary mouse input, so the machine cells came from an automated run and the human verdict came from a second, ordinary Safari window pointed at the same page, its **Copy JSON** pasted into `results/2026-09-12-macos15.7.9-safari27.0.json` in place of the automated run's human field. The two runs were diffed field by field first; every machine cell agreed, decode-speed jitter aside, so replacing only the human verdict does not launder in anything else. A run on the same iPhone earlier that day, with a revision of the page that did not yet request the `playback` category, is kept as `results/2026-09-12-ios18.7-safari18.7.7-iphoneXs-ambient.json`: it recorded the same machine verdicts, timing aside, and its tones were inaudible with the ringer switch on silent until the switch was flipped. The run in the table was made with the switch on silent and the tones were audible. That is why step 4 sets the category.
 
@@ -88,6 +88,12 @@ node check-playwright.js            # chromium and webkit
 node check-playwright.js firefox    # Playwright's Firefox
 ```
 
+## Channel count by mapping family
+
+The page above asks about one stream, 16 channels. [`matrix/`](matrix/) asks the wider question: seventeen Opus streams from 1 to 16 channels in mapping families 0, 1, 2 and 255, each decoded through `decodeAudioData` and WebCodecs and queried through `MediaCapabilities.decodingInfo()`, live at https://mormegil6.github.io/safari-multichannel-opus-repro/matrix/. Family 1 is the Vorbis-order surround layouts (3.0, quad, 5.1, 7.1), family 2 is the Ambisonics layout of RFC 8486, and family 255 is independent streams with no defined layout.
+
+Result on 2026-09-25, Safari 27.0 (build 20625.1.29.18.28) on macOS 15.8, for the 16 streams other than the family 0 stereo control. The two decoders use different rules. `decodeAudioData` refuses all 16, including mono in family 255 and stereo in family 1, so it accepts only family 0. WebCodecs `isConfigSupported` accepts up to 2 channels in any family, and refuses all 13 streams of 3 to 16 channels, including plain 5.1 and 7.1 in family 1 and the RFC 8486 Ambisonics layouts. `MediaCapabilities.decodingInfo()` reports every one of the 16 as supported. Chrome 154.0.8037.58 decodes all 17 on both surfaces. So the refusal is not about 16 channels or about family 255. The raw JSON is `results/2026-09-25-matrix-*.json`. Not yet measured: macOS 26 and iOS 26.
+
 ## Regenerating the assets
 
 ```
@@ -106,6 +112,7 @@ Needs ffmpeg with the libopus encoder (`ffmpeg -encoders | grep libopus`) and py
 - `measure.mjs`: runs the page in the installed Safari, Chrome and Firefox and writes those files.
 - `status-table.mjs`: prints the status table from them.
 - `make-assets.sh`, `ogg-packets.py`: asset generation.
+- `matrix/`: the channel-count by mapping-family page and its streams; `make-matrix.sh` regenerates them.
 - `check-playwright.js`: the smoke check described above.
 - `package.json`: `playwright-core`, needed only by `measure.mjs` and `check-playwright.js`.
 
@@ -115,6 +122,6 @@ I run a livestream that carries third-order Ambisonics as 16-channel Opus. On Sa
 
 ## License
 
-- Source code (`index.html`, `check-playwright.js`, `measure.mjs`, `status-table.mjs`, `make-assets.sh`, `ogg-packets.py`): MIT, see [LICENSE](LICENSE).
+- Source code (`index.html`, `check-playwright.js`, `measure.mjs`, `status-table.mjs`, `make-assets.sh`, `make-matrix.sh`, `ogg-packets.py`, `matrix/index.html`): MIT, see [LICENSE](LICENSE).
 - `opus-decoder.min.js`: the opus-decoder wrapper is MIT, copyright Ethan Halsall; it compiles in libopus, BSD 3-clause, copyright Xiph.Org Foundation and others. Both notices are in [LICENSE-opus-decoder](LICENSE-opus-decoder).
-- Generated media (`opus16.*`, `opus2.*`, `*-packets.json`, `assets.js`) and the measurement records in `results/`: CC0 1.0, see [LICENSE-ASSETS](LICENSE-ASSETS). Synthetic ffmpeg output and measurements of it, with no third-party material, so anyone can reuse them without attribution.
+- Generated media (`opus16.*`, `opus2.*`, `*-packets.json`, `assets.js`, `matrix/files/*`) and the measurement records in `results/`: CC0 1.0, see [LICENSE-ASSETS](LICENSE-ASSETS). Synthetic ffmpeg output and measurements of it, with no third-party material, so anyone can reuse them without attribution.
