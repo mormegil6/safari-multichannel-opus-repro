@@ -1,0 +1,26 @@
+{
+ "page": "safari-opus-matrix",
+ "when": "2026-09-30T09:37:58.648Z",
+ "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15",
+ "note": "Same machine, Safari Technology Preview instead of the stable channel. STP tracks the bleeding edge and at this build reports version 27, at or past the already-shipped macOS 27 (Golden Gate, released 2026-09-14).",
+ "rows": [
+  {"label":"family 0, stereo (control)","file":"f0-2ch","channels":2,"family":0,"decodeAudioData":{"ok":true,"text":"decoded 2 ch"},"webcodecs":{"ok":true,"text":"supported, 151 frames"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 255, mono","file":"f255-1ch","channels":1,"family":255,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":true,"text":"supported, 101 frames"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 255, stereo (2 independent streams)","file":"f255-2ch","channels":2,"family":255,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":true,"text":"supported, 101 frames"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 1, stereo","file":"f1-2ch","channels":2,"family":1,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":true,"text":"supported, 101 frames"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 255","file":"f255-3ch","channels":3,"family":255,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 1, 3.0","file":"f1-3ch","channels":3,"family":1,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 255","file":"f255-4ch","channels":4,"family":255,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 1, quad","file":"f1-4ch","channels":4,"family":1,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 2, first-order Ambisonics","file":"f2-4ch","channels":4,"family":2,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 255","file":"f255-6ch","channels":6,"family":255,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 1, 5.1","file":"f1-6ch","channels":6,"family":1,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 255","file":"f255-8ch","channels":8,"family":255,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 1, 7.1","file":"f1-8ch","channels":8,"family":1,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 255","file":"f255-10ch","channels":10,"family":255,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 255","file":"f255-12ch","channels":12,"family":255,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 255","file":"f255-16ch","channels":16,"family":255,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}},
+  {"label":"family 2, third-order Ambisonics","file":"f2-16ch","channels":16,"family":2,"decodeAudioData":{"ok":false,"text":"refused (error callback invoked with null)"},"webcodecs":{"ok":false,"text":"isConfigSupported false"},"mediaCapabilities":{"file":true,"media-source":true}}
+ ],
+ "summary": {"controlDecoded":true,"otherStreams":16,"decodeAudioDataRefuses":16,"webCodecsRefuses":13,"mediaCapabilitiesSaysSupportedForAStreamADecoderRefuses":16,"webCodecsRefusesOnlyAbove2Channels":true,"decodeAudioDataRefusesOnlyNonZeroFamily":true}
+}
