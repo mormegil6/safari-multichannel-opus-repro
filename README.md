@@ -120,6 +120,8 @@ Needs ffmpeg with the libopus encoder (`ffmpeg -encoders | grep libopus`) and py
 
 I run a livestream that carries third-order Ambisonics as 16-channel Opus. On Safari the audio has to be decoded in WebAssembly and scheduled against the video clock, because neither surface that decodes will take it and the two that answer about a string say yes and then the decode fails; the measurements behind that design, on macOS and on two iPhones, are in the project's notes: [docs/IOS-SAFARI.md](https://github.com/mormegil6/ambisonic-box/blob/main/docs/IOS-SAFARI.md) in [ambisonic-box](https://github.com/mormegil6/ambisonic-box). This page is the reduced, public form of those measurements, built so that anyone can run it on their own device and so that a browser vendor can turn it into a test.
 
+Reported to WebKit as [bug 327697](https://bugs.webkit.org/show_bug.cgi?id=327697) on 15 October 2026, with the [matrix page](matrix/) and the result files from `results/` attached. It sits beside the two earlier WebKit bugs it builds on, [229325](https://bugs.webkit.org/show_bug.cgi?id=229325) and [307632](https://bugs.webkit.org/show_bug.cgi?id=307632).
+
 ## License
 
 - Source code (`index.html`, `check-playwright.js`, `measure.mjs`, `status-table.mjs`, `make-assets.sh`, `make-matrix.sh`, `ogg-packets.py`, `matrix/index.html`): MIT, see [LICENSE](LICENSE).
