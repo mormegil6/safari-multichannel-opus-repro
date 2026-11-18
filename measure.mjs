@@ -90,7 +90,9 @@ async function safari(listen) {
     // first because safaridriver does not do that by itself.
     let clickError = null;
     for (let i = 0; i < 5 && !(await js('return !!(window.__result && window.__result.humanPlay)')); i++) {
-      if (process.platform === 'darwin') { try { execSync(`osascript -e 'tell application "Safari" to activate'`); } catch (e) { /* not fatal */ } }
+      // eight seconds at most: the first time, macOS asks whether this program may
+      // control Safari, and without a limit an unanswered prompt stops the run
+      if (process.platform === 'darwin') { try { execSync(`osascript -e 'tell application "Safari" to activate'`, { timeout: 8000, stdio: 'ignore' }); } catch (e) { /* not fatal */ } }
       await js("document.getElementById('play').scrollIntoView({ block: 'center' })");
       await sleep(500);
       const el = await call('POST', `/session/${sid}/element`, { using: 'css selector', value: '#play' });
