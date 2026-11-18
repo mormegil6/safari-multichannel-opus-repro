@@ -4,3 +4,6 @@ FILING.md
 # installed by npm install, only measure.mjs and check-playwright.js need it
 node_modules/
 package-lock.json
+
+# recordings of the last playback.mjs run
+playback-results/*.wav

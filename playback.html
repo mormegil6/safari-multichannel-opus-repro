@@ -1,0 +1,165 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opus through an audio element and through MSE</title>
+<style>
+ body { font: 15px/1.5 system-ui, sans-serif; margin: 1.5rem; max-width: 52rem; color: #111; background: #fff; }
+ h1 { font-size: 1.4rem; line-height: 1.3; }
+ button { font: inherit; padding: .5rem 1rem; margin: .3rem .5rem .3rem 0; border-radius: 6px; border: 1px solid #888; background: #f8f8f8; cursor: pointer; }
+ button:disabled { opacity: .45; cursor: default; }
+ code { background: #f4f4f4; padding: .1rem .3rem; font-size: .9em; }
+ pre { background: #f4f4f4; padding: .6rem; overflow-x: auto; font-size: .8rem; white-space: pre-wrap; }
+ .note { color: #444; font-size: .9rem; }
+</style>
+<body>
+<h1>Opus through an audio element and through MSE</h1>
+<p>Each button sends one clip through one playback path and prints what the element reported. The 2-channel clip is three seconds of a 200 Hz tone on the left and a 300 Hz tone on the right. The 16-channel clip carries a different tone on each channel. Nothing here uses Web Audio, so any sound comes from the browser's own decoder.</p>
+<p id="buttons"></p>
+<pre id="out">No test has run yet.</pre>
+<p class="note">What this browser answers to the two type queries:</p>
+<pre id="queries"></pre>
+<p class="note">Measured results and method: <a href="https://github.com/mormegil6/safari-multichannel-opus-repro#playback-through-an-audio-element-and-through-mse">README</a>. <code>playback.mjs</code> runs every test on this page in Safari and records the output device.</p>
+<script>
+// One test = one clip through one playback path. Nothing here uses Web Audio:
+// the element plays straight to the output device, which is the path that
+// canPlayType and MediaSource.isTypeSupported describe.
+const MIME = { webm: 'audio/webm; codecs="opus"', mp4: 'audio/mp4; codecs="opus"' };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+window.__results = {};
+
+function ranges(tr) {
+  const out = [];
+  try { for (let i = 0; i < tr.length; i++) out.push([+tr.start(i).toFixed(3), +tr.end(i).toFixed(3)]); } catch (e) { out.push('threw ' + e.name); }
+  return out;
+}
+
+function snapshot(a) {
+  return {
+    currentTime: +a.currentTime.toFixed(3),
+    duration: a.duration,
+    readyState: a.readyState,
+    networkState: a.networkState,
+    paused: a.paused,
+    ended: a.ended,
+    error: a.error ? { code: a.error.code, message: a.error.message || '' } : null,
+    decodedBytes: typeof a.webkitAudioDecodedByteCount === 'number' ? a.webkitAudioDecodedByteCount : null,
+    audioTracks: a.audioTracks ? a.audioTracks.length : null,
+    buffered: ranges(a.buffered),
+  };
+}
+
+function watch(a, out) {
+  const t0 = performance.now();
+  out.events = [];
+  out.timeupdates = 0;
+  for (const ev of ['loadstart', 'loadedmetadata', 'loadeddata', 'canplay', 'canplaythrough', 'play', 'playing', 'waiting', 'stalled', 'ended', 'error', 'emptied', 'abort', 'pause'])
+    a.addEventListener(ev, () => out.events.push(Math.round(performance.now() - t0) + ' ' + ev));
+  a.addEventListener('timeupdate', () => { out.timeupdates++; });
+}
+
+function dispose(a) {
+  try { a.pause(); a.removeAttribute('src'); a.load(); a.remove(); } catch (e) {}
+}
+
+async function runElement(file) {
+  const out = { path: 'element', file };
+  const a = new Audio();
+  a.preload = 'auto';
+  out.canPlayType = a.canPlayType(MIME[file.split('.').pop()]);
+  watch(a, out);
+  a.src = file + '?t=' + Date.now();
+  document.body.appendChild(a);
+  out.playPromise = await settle(a.play());
+  out.afterPlayCall = snapshot(a);
+  await wait(4500);
+  out.final = snapshot(a);
+  dispose(a);
+  return out;
+}
+
+// play() can stay pending for ever when the element never becomes playable,
+// so give it three seconds and record that it was still pending
+function settle(p) {
+  return Promise.race([
+    p.then(() => 'resolved', e => 'rejected, ' + e.name + ': ' + e.message),
+    wait(3000).then(() => 'still pending after 3 s'),
+  ]);
+}
+
+async function runMSE(file) {
+  const mime = MIME[file.split('.').pop()];
+  const out = { path: 'mse', file, mime };
+  if (!window.MediaSource) { out.api = 'no MediaSource'; return out; }
+  out.isTypeSupported = MediaSource.isTypeSupported(mime);
+  const a = new Audio();
+  watch(a, out);
+  const ms = new MediaSource();
+  a.src = URL.createObjectURL(ms);
+  document.body.appendChild(a);
+  const opened = await Promise.race([new Promise(r => ms.addEventListener('sourceopen', () => r(true), { once: true })), wait(5000).then(() => false)]);
+  if (!opened) { out.sourceopen = 'timeout'; out.final = snapshot(a); dispose(a); return out; }
+  let sb;
+  try { sb = ms.addSourceBuffer(mime); out.addSourceBuffer = 'ok'; }
+  catch (e) { out.addSourceBuffer = 'threw ' + e.name + ': ' + e.message; out.final = snapshot(a); dispose(a); return out; }
+  const buf = await (await fetch(file + '?t=' + Date.now())).arrayBuffer();
+  out.bytes = buf.byteLength;
+  sb.addEventListener('error', () => { out.sourceBufferError = true; });
+  const done = new Promise(r => sb.addEventListener('updateend', () => r('updateend'), { once: true }));
+  try { sb.appendBuffer(buf); out.append = await Promise.race([done, wait(5000).then(() => 'timeout')]); }
+  catch (e) { out.append = 'threw ' + e.name + ': ' + e.message; }
+  out.sourceBufferBuffered = ranges(sb.buffered);
+  try { if (ms.readyState === 'open') { ms.endOfStream(); out.endOfStream = 'ok'; } else out.endOfStream = 'skipped, readyState ' + ms.readyState; }
+  catch (e) { out.endOfStream = 'threw ' + e.name + ': ' + e.message; }
+  out.playPromise = await settle(a.play());
+  out.afterPlayCall = snapshot(a);
+  await wait(4500);
+  out.mediaSourceReadyState = ms.readyState;
+  out.final = snapshot(a);
+  dispose(a);
+  return out;
+}
+
+window.start = (path, file) => {
+  const key = path + ':' + file;
+  window.__results[key] = null;
+  (path === 'element' ? runElement(file) : runMSE(file)).then(
+    r => { window.__results[key] = r; },
+    e => { window.__results[key] = { path, file, crashed: String(e && e.stack || e) }; });
+  return key;
+};
+
+window.__queries = (() => {
+  const a = document.createElement('audio');
+  const q = { userAgent: navigator.userAgent, MediaSource: !!window.MediaSource, ManagedMediaSource: !!window.ManagedMediaSource };
+  for (const k of Object.keys(MIME)) {
+    q['canPlayType ' + k] = a.canPlayType(MIME[k]);
+    q['isTypeSupported ' + k] = window.MediaSource ? MediaSource.isTypeSupported(MIME[k]) : null;
+  }
+  return q;
+})();
+document.getElementById('queries').textContent = JSON.stringify(window.__queries, null, 1);
+
+// One button per test, for a person. playback.mjs calls window.start directly.
+const buttons = [];
+for (const ext of ['webm', 'mp4']) for (const path of ['element', 'mse']) for (const n of [2, 16]) {
+  const file = `opus${n}.${ext}`;
+  const b = document.createElement('button');
+  b.id = `run-${path}-opus${n}-${ext}`;
+  b.textContent = `${path === 'element' ? 'audio element' : 'MSE'}, ${n}-channel ${ext === 'webm' ? 'WebM' : 'fMP4'}`;
+  b.addEventListener('click', async () => {
+    const out = document.getElementById('out');
+    for (const x of buttons) x.disabled = true;
+    out.textContent = b.textContent + ': running, up to ten seconds';
+    const key = window.start(path, file);
+    while (!window.__results[key]) await wait(200);
+    const r = window.__results[key];
+    // through MSE, play() comes after the append, so after the click has ended
+    const refused = /NotAllowedError/.test(r.playPromise || '') ? '\nThis browser refused play() because it came after the click had ended. The append, the buffered ranges and the duration below are not affected; allow auto-play for this site to hear the clip.' : '';
+    out.textContent = b.textContent + refused + '\n' + JSON.stringify(r, null, 1);
+    for (const x of buttons) x.disabled = false;
+  });
+  buttons.push(b);
+  document.getElementById('buttons').appendChild(b);
+}
+window.__ready = true;
+</script>

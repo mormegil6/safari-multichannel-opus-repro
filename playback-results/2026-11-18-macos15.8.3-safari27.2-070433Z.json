@@ -1,0 +1,588 @@
+{
+ "when": "2026-11-18T07:04:33.261Z",
+ "page": "the local copy, served on loopback",
+ "macos": "15.8.3",
+ "captureDevice": "BlackHole 2ch",
+ "tests": [
+  {
+   "path": "element",
+   "file": "opus2.webm",
+   "canPlayType": "probably",
+   "events": [
+    "7 play",
+    "7 waiting",
+    "7 loadstart",
+    "23 loadedmetadata",
+    "25 loadeddata",
+    "25 canplay",
+    "25 playing",
+    "26 canplaythrough",
+    "3383 pause",
+    "3383 ended",
+    "4529 abort",
+    "4529 emptied"
+   ],
+   "timeupdates": 14,
+   "playPromise": "resolved",
+   "afterPlayCall": {
+    "currentTime": 0,
+    "duration": 3.0135,
+    "readyState": 4,
+    "networkState": 1,
+    "paused": false,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": [
+     [
+      0,
+      3.014
+     ]
+    ]
+   },
+   "final": {
+    "currentTime": 3.014,
+    "duration": 3.0135,
+    "readyState": 4,
+    "networkState": 1,
+    "paused": true,
+    "ended": true,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": [
+     [
+      0,
+      3.014
+     ]
+    ]
+   },
+   "heard": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 10,
+    "peak": [
+     0.540558,
+     0.538269
+    ],
+    "nonzeroSamples": [
+     144938,
+     144947
+    ],
+    "loudestHalfSecondAt": 1,
+    "tones": [
+     [
+      {
+       "hz": 200,
+       "dbfs": -6
+      },
+      {
+       "hz": 300,
+       "dbfs": -53.9
+      }
+     ],
+     [
+      {
+       "hz": 200,
+       "dbfs": -51.5
+      },
+      {
+       "hz": 300,
+       "dbfs": -6.1
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "path": "element",
+   "file": "opus16.webm",
+   "canPlayType": "probably",
+   "events": [
+    "2 play",
+    "2 waiting",
+    "3 loadstart",
+    "28 loadedmetadata",
+    "82 pause",
+    "82 ended",
+    "7528 abort",
+    "7528 emptied"
+   ],
+   "timeupdates": 0,
+   "playPromise": "still pending after 3 s",
+   "afterPlayCall": {
+    "currentTime": 0,
+    "duration": 0,
+    "readyState": 1,
+    "networkState": 1,
+    "paused": true,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": []
+   },
+   "final": {
+    "currentTime": 0,
+    "duration": 0,
+    "readyState": 1,
+    "networkState": 1,
+    "paused": true,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": []
+   },
+   "heard": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 10,
+    "peak": [
+     0,
+     0
+    ],
+    "nonzeroSamples": [
+     0,
+     0
+    ],
+    "loudestHalfSecondAt": null,
+    "tones": [
+     [],
+     []
+    ]
+   }
+  },
+  {
+   "path": "mse",
+   "file": "opus2.webm",
+   "mime": "audio/webm; codecs=\"opus\"",
+   "isTypeSupported": true,
+   "events": [
+    "5 loadstart",
+    "19 loadedmetadata",
+    "23 loadeddata",
+    "23 canplay",
+    "23 canplaythrough",
+    "39 play",
+    "39 playing",
+    "3396 pause",
+    "3396 ended",
+    "4541 abort",
+    "4541 emptied"
+   ],
+   "timeupdates": 14,
+   "addSourceBuffer": "ok",
+   "bytes": 40752,
+   "append": "updateend",
+   "sourceBufferBuffered": [
+    [
+     0,
+     3.014
+    ]
+   ],
+   "endOfStream": "ok",
+   "playPromise": "resolved",
+   "afterPlayCall": {
+    "currentTime": 0,
+    "duration": 3.0135,
+    "readyState": 4,
+    "networkState": 1,
+    "paused": false,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": [
+     [
+      0,
+      3.014
+     ]
+    ]
+   },
+   "mediaSourceReadyState": "ended",
+   "final": {
+    "currentTime": 3.014,
+    "duration": 3.0135,
+    "readyState": 2,
+    "networkState": 1,
+    "paused": true,
+    "ended": true,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": [
+     [
+      0,
+      3.014
+     ]
+    ]
+   },
+   "heard": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 10,
+    "peak": [
+     0.540558,
+     0.538269
+    ],
+    "nonzeroSamples": [
+     144938,
+     144947
+    ],
+    "loudestHalfSecondAt": 1.25,
+    "tones": [
+     [
+      {
+       "hz": 200,
+       "dbfs": -6
+      },
+      {
+       "hz": 300,
+       "dbfs": -54.1
+      }
+     ],
+     [
+      {
+       "hz": 200,
+       "dbfs": -49.9
+      },
+      {
+       "hz": 300,
+       "dbfs": -6.1
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "path": "mse",
+   "file": "opus16.webm",
+   "mime": "audio/webm; codecs=\"opus\"",
+   "isTypeSupported": true,
+   "events": [
+    "3 loadstart",
+    "19 loadedmetadata",
+    "100 ended",
+    "100 play",
+    "100 waiting",
+    "7682 abort",
+    "7682 emptied"
+   ],
+   "timeupdates": 1,
+   "addSourceBuffer": "ok",
+   "bytes": 84612,
+   "append": "updateend",
+   "sourceBufferBuffered": [],
+   "endOfStream": "ok",
+   "playPromise": "still pending after 3 s",
+   "afterPlayCall": {
+    "currentTime": 0,
+    "duration": 0,
+    "readyState": 1,
+    "networkState": 1,
+    "paused": false,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": []
+   },
+   "mediaSourceReadyState": "ended",
+   "final": {
+    "currentTime": 0,
+    "duration": 0,
+    "readyState": 1,
+    "networkState": 1,
+    "paused": false,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": []
+   },
+   "heard": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 10,
+    "peak": [
+     0,
+     0
+    ],
+    "nonzeroSamples": [
+     0,
+     0
+    ],
+    "loudestHalfSecondAt": null,
+    "tones": [
+     [],
+     []
+    ]
+   }
+  },
+  {
+   "path": "element",
+   "file": "opus2.mp4",
+   "canPlayType": "",
+   "events": [
+    "2 play",
+    "2 waiting",
+    "3 loadstart",
+    "37 loadedmetadata",
+    "77 loadeddata",
+    "77 canplay",
+    "77 playing",
+    "78 canplaythrough",
+    "3436 pause",
+    "3436 ended",
+    "4579 abort",
+    "4579 emptied"
+   ],
+   "timeupdates": 15,
+   "playPromise": "resolved",
+   "afterPlayCall": {
+    "currentTime": 0,
+    "duration": 3.0065,
+    "readyState": 4,
+    "networkState": 1,
+    "paused": false,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": [
+     [
+      0,
+      3.006
+     ]
+    ]
+   },
+   "final": {
+    "currentTime": 3.006,
+    "duration": 3.0065,
+    "readyState": 4,
+    "networkState": 1,
+    "paused": true,
+    "ended": true,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": [
+     [
+      0,
+      3.006
+     ]
+    ]
+   },
+   "heard": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 10,
+    "peak": [
+     0.540558,
+     0.538269
+    ],
+    "nonzeroSamples": [
+     144938,
+     144947
+    ],
+    "loudestHalfSecondAt": 2.25,
+    "tones": [
+     [
+      {
+       "hz": 200,
+       "dbfs": -6
+      },
+      {
+       "hz": 300,
+       "dbfs": -54.2
+      }
+     ],
+     [
+      {
+       "hz": 200,
+       "dbfs": -49.8
+      },
+      {
+       "hz": 300,
+       "dbfs": -6.1
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "path": "element",
+   "file": "opus16.mp4",
+   "canPlayType": "",
+   "events": [
+    "1 play",
+    "1 waiting",
+    "2 loadstart",
+    "29 error",
+    "4530 emptied"
+   ],
+   "timeupdates": 0,
+   "playPromise": "rejected, NotSupportedError: The operation is not supported.",
+   "afterPlayCall": {
+    "currentTime": 0,
+    "duration": null,
+    "readyState": 0,
+    "networkState": 3,
+    "paused": false,
+    "ended": false,
+    "error": {
+     "code": 4,
+     "message": ""
+    },
+    "decodedBytes": null,
+    "audioTracks": 0,
+    "buffered": []
+   },
+   "final": {
+    "currentTime": 0,
+    "duration": null,
+    "readyState": 0,
+    "networkState": 3,
+    "paused": false,
+    "ended": false,
+    "error": {
+     "code": 4,
+     "message": ""
+    },
+    "decodedBytes": null,
+    "audioTracks": 0,
+    "buffered": []
+   },
+   "heard": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 10,
+    "peak": [
+     0,
+     0
+    ],
+    "nonzeroSamples": [
+     0,
+     0
+    ],
+    "loudestHalfSecondAt": null,
+    "tones": [
+     [],
+     []
+    ]
+   }
+  },
+  {
+   "path": "mse",
+   "file": "opus2.mp4",
+   "mime": "audio/mp4; codecs=\"opus\"",
+   "isTypeSupported": false,
+   "events": [
+    "1 loadstart",
+    "3 abort",
+    "3 emptied"
+   ],
+   "timeupdates": 0,
+   "addSourceBuffer": "threw NotSupportedError: The operation is not supported.",
+   "final": {
+    "currentTime": 0,
+    "duration": null,
+    "readyState": 0,
+    "networkState": 2,
+    "paused": true,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 0,
+    "buffered": []
+   },
+   "heard": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 10,
+    "peak": [
+     0,
+     0
+    ],
+    "nonzeroSamples": [
+     0,
+     0
+    ],
+    "loudestHalfSecondAt": null,
+    "tones": [
+     [],
+     []
+    ]
+   }
+  },
+  {
+   "path": "mse",
+   "file": "opus16.mp4",
+   "mime": "audio/mp4; codecs=\"opus\"",
+   "isTypeSupported": false,
+   "events": [
+    "2 loadstart",
+    "2 abort",
+    "2 emptied"
+   ],
+   "timeupdates": 0,
+   "addSourceBuffer": "threw NotSupportedError: The operation is not supported.",
+   "final": {
+    "currentTime": 0,
+    "duration": null,
+    "readyState": 0,
+    "networkState": 2,
+    "paused": true,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 0,
+    "buffered": []
+   },
+   "heard": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 10,
+    "peak": [
+     0,
+     0
+    ],
+    "nonzeroSamples": [
+     0,
+     0
+    ],
+    "loudestHalfSecondAt": null,
+    "tones": [
+     [],
+     []
+    ]
+   }
+  }
+ ],
+ "safariBuild": "20625.2.8.18.4",
+ "safari": "27.2",
+ "queries": {
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15",
+  "MediaSource": true,
+  "ManagedMediaSource": true,
+  "canPlayType webm": "probably",
+  "isTypeSupported webm": true,
+  "canPlayType mp4": "",
+  "isTypeSupported mp4": false
+ },
+ "volume": "output volume:100, input volume:44, alert volume:100, output muted:false",
+ "requests": [
+  "playback.html whole 200",
+  "opus2.webm whole 200",
+  "opus16.webm whole 200",
+  "opus2.webm whole 200",
+  "opus16.webm whole 200",
+  "opus2.mp4 bytes=0-1 206",
+  "opus2.mp4 bytes=0-40800 206",
+  "opus16.mp4 bytes=0-1 206",
+  "opus16.mp4 bytes=0-84860 206",
+  "opus16.mp4 bytes=0-1445 206"
+ ]
+}

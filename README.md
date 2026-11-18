@@ -2,7 +2,7 @@
 
 **Live check: https://mormegil6.github.io/safari-multichannel-opus-repro/**
 
-One page plus the two script files it loads from the same directory. It embeds, through `assets.js`, a 16-channel Opus clip (channel mapping family 255, sixteen independent streams, which is how this stream carries third-order Ambisonics) and a 2-channel control, offers both to the two decode APIs a page can call directly, `decodeAudioData` and WebCodecs, and to the two string queries the media element and MSE expose, then decodes the identical packets with libopus compiled to WebAssembly, and finally plays two of the decoded channels so a person can confirm that sound actually came out. Nothing is fetched over the network, so `index.html`, `assets.js` and `opus-decoder.min.js` copied side by side open from a `file://` URL with no server. Playback through a media element or an MSE SourceBuffer is not attempted; those paths appear only as their string queries, `canPlayType` and `isTypeSupported`.
+One page plus the two script files it loads from the same directory. It embeds, through `assets.js`, a 16-channel Opus clip (channel mapping family 255, sixteen independent streams, which is how this stream carries third-order Ambisonics) and a 2-channel control, offers both to the two decode APIs a page can call directly, `decodeAudioData` and WebCodecs, and to the two string queries the media element and MSE expose, then decodes the identical packets with libopus compiled to WebAssembly, and finally plays two of the decoded channels so a person can confirm that sound actually came out. Nothing is fetched over the network, so `index.html`, `assets.js` and `opus-decoder.min.js` copied side by side open from a `file://` URL with no server. This page does not attempt playback through a media element or an MSE SourceBuffer; those paths appear in it only as their string queries, `canPlayType` and `isTypeSupported`. A second page, `playback.html`, plays both clips through both paths: see [Playback through an audio element and through MSE](#playback-through-an-audio-element-and-through-mse).
 
 The 16-channel clip carries a different sine on each channel: channel k = 200 + 100 k Hz, so channel 0 is 200 Hz and channel 15 is 1700 Hz. Every successful decode is followed by a Goertzel check on each channel, so a decoder that returns 16 channels in the wrong order, or 16 channels of which 14 are silent, shows as WRONG rather than as a pass.
 
@@ -94,6 +94,37 @@ The page above asks about one stream, 16 channels. [`matrix/`](matrix/) asks the
 
 Result on 2026-09-25, Safari 27.0 (build 20625.1.29.18.28) on macOS 15.8, for the 16 streams other than the family 0 stereo control. The two decoders use different rules. `decodeAudioData` refuses all 16, including mono in family 255 and stereo in family 1, so it accepts only family 0. WebCodecs `isConfigSupported` accepts up to 2 channels in any family, and refuses all 13 streams of 3 to 16 channels, including plain 5.1 and 7.1 in family 1 and the RFC 8486 Ambisonics layouts. `MediaCapabilities.decodingInfo()` reports every one of the 16 as supported. Chrome 154.0.8037.58 decodes all 17 on both surfaces. So the refusal is not about 16 channels or about family 255. The raw JSON is `results/2026-09-25-matrix-*.json`. Not yet measured: macOS 26 and iOS 26.
 
+## Playback through an audio element and through MSE
+
+`canPlayType` and `isTypeSupported` answer for two playback paths, the media element and an MSE `SourceBuffer`, and `index.html` only asks them. [`playback.html`](playback.html) sends both clips through both paths, live at https://mormegil6.github.io/safari-multichannel-opus-repro/playback.html with one button per clip and path. It uses no Web Audio, so whatever sounds comes from the browser's own decoder, and it prints what the element reported: the events it fired, its duration and error, the buffered ranges, and whether the promise from `play()` settled.
+
+Result on 18 November 2026, Safari 27.2 (build 20625.2.8.18.4) on macOS 15.8.3: Safari takes the 16-channel WebM through both paths, reports no error on either, and plays nothing.
+
+| Path and clip | What the page recorded | Recorded from the output device |
+|---|---|---|
+| audio element, 2-ch WebM | `canPlayType` "probably"; the element reports no error; duration 3.01 s; plays to the end; `play()` resolves | 200 Hz at -6.0 dBFS left, 300 Hz at -6.1 dBFS right |
+| audio element, 16-ch WebM | `canPlayType` "probably"; the element reports no error; duration 0; `ended` fires without `playing`; `play()` is still pending after 3 s | silence, every sample zero |
+| MSE, 2-ch WebM | `isTypeSupported` true; `addSourceBuffer` accepts the type; `appendBuffer` completes without an `error` event; buffered 0.00 to 3.01 s; the element reports no error; duration 3.01 s; plays to the end; `play()` resolves | 200 Hz at -6.0 dBFS left, 300 Hz at -6.1 dBFS right |
+| MSE, 16-ch WebM | `isTypeSupported` true; `addSourceBuffer` accepts the type; `appendBuffer` completes without an `error` event; nothing buffered; the element reports no error; duration 0; `ended` fires without `playing`; `play()` is still pending after 3 s | silence, every sample zero |
+| audio element, 2-ch fMP4 | `canPlayType` ""; the element reports no error; duration 3.01 s; plays to the end; `play()` resolves | 200 Hz at -6.0 dBFS left, 300 Hz at -6.1 dBFS right |
+| audio element, 16-ch fMP4 | `canPlayType` ""; the element reports error 4 (`MEDIA_ERR_SRC_NOT_SUPPORTED`); duration not known; never plays; `play()` rejects with NotSupportedError | silence, every sample zero |
+| MSE, 2-ch fMP4 | `isTypeSupported` false; `addSourceBuffer` throws NotSupportedError | silence, every sample zero |
+| MSE, 16-ch fMP4 | `isTypeSupported` false; `addSourceBuffer` throws NotSupportedError | silence, every sample zero |
+
+What the table says. Given the 16-channel WebM, the audio element loads the metadata, reports a duration of 0 and fires `ended` without ever firing `playing`. No `error` event fires, `audio.error` stays null, and the promise returned by `play()` is still pending three seconds later. Through MSE, `addSourceBuffer` accepts the type and `appendBuffer` completes with `updateend` and no `error` event, after which `SourceBuffer.buffered` is empty and the element reports the same as it did for the file. The output device stayed at digital zero through both tests. The 2-channel control, encoded the same way, plays to the end through both paths, and its two tones are in the recording. So the yes that `canPlayType` and `isTypeSupported` give for Opus in WebM is followed, for this clip, by a failure that raises no error: no `error` event and no rejected promise, only a duration of 0 and an `ended` event.
+
+In fragmented MP4, Safari's answers match what it does, with one exception. MSE refuses the type at `addSourceBuffer` for both clips, as `isTypeSupported` said it would. The audio element refuses the 16-channel file with `MEDIA_ERR_SRC_NOT_SUPPORTED` and a rejected `play()`, which matches the empty string from `canPlayType`. The exception is the 2-channel file, which the audio element plays although `canPlayType` returned the empty string for its type.
+
+How it was measured. `playback.mjs` serves the page on loopback and drives Safari through safaridriver with auto-play allowed, calling the function behind each button. During each of the eight tests it records ten seconds of the system's output with `sox` through a loopback audio device, here BlackHole 2ch set as the output device, and reports per channel the largest sample, the number of samples that are not zero, and which of the clips' tones are in the loudest half second. A test that sounded nothing leaves a recording in which every sample is zero. The control comes back at the level its tones were synthesised at, 200 Hz at -6.0 dBFS on the left and 300 Hz at -6.1 dBFS on the right, so the recording path was working in the same run. Three runs gave the same cells. Their JSON is in `playback-results/`, and the table is printed from the first of them by `playback-table.mjs`, which also compares the others with it. Machine: MacBook Pro, Apple M3 Max.
+
+```
+safaridriver --enable                             # once
+node playback.mjs                                 # needs sox and a loopback output device; pass its name if it is not "BlackHole 2ch"
+node playback-table.mjs playback-results/*.json
+```
+
+Only Safari was measured this way. As a check on the page itself, Chrome 157.0.8103.79 on the same machine plays the 16-channel clip through both paths in both containers (a duration of about 3 s, `playing` fires, the clip runs to its end, and MSE buffers the whole of it). That run was driven through Playwright with the sound muted, so nothing was recorded and no JSON of it is committed.
+
 ## Regenerating the assets
 
 ```
@@ -114,7 +145,11 @@ Needs ffmpeg with the libopus encoder (`ffmpeg -encoders | grep libopus`) and py
 - `make-assets.sh`, `ogg-packets.py`: asset generation.
 - `matrix/`: the channel-count by mapping-family page and its streams; `make-matrix.sh` regenerates them.
 - `check-playwright.js`: the smoke check described above.
-- `package.json`: `playwright-core`, needed only by `measure.mjs` and `check-playwright.js`.
+- `playback.html`: the playback page, one button per clip and path.
+- `playback.mjs`: runs every test on that page in Safari and records the output device.
+- `playback-results/`: what each of those runs recorded, one JSON per run, named by date, OS, browser and time.
+- `playback-table.mjs`: prints the playback table from them.
+- `package.json`: `playwright-core`, needed only by `measure.mjs` and `check-playwright.js`; `playback.mjs` needs no package.
 
 ## Context
 
@@ -124,6 +159,6 @@ Reported to WebKit as [bug 327697](https://bugs.webkit.org/show_bug.cgi?id=32769
 
 ## License
 
-- Source code (`index.html`, `check-playwright.js`, `measure.mjs`, `status-table.mjs`, `make-assets.sh`, `make-matrix.sh`, `ogg-packets.py`, `matrix/index.html`): MIT, see [LICENSE](LICENSE).
+- Source code (`index.html`, `playback.html`, `check-playwright.js`, `measure.mjs`, `status-table.mjs`, `playback.mjs`, `playback-table.mjs`, `make-assets.sh`, `make-matrix.sh`, `ogg-packets.py`, `matrix/index.html`): MIT, see [LICENSE](LICENSE).
 - `opus-decoder.min.js`: the opus-decoder wrapper is MIT, copyright Ethan Halsall; it compiles in libopus, BSD 3-clause, copyright Xiph.Org Foundation and others. Both notices are in [LICENSE-opus-decoder](LICENSE-opus-decoder).
-- Generated media (`opus16.*`, `opus2.*`, `*-packets.json`, `assets.js`, `matrix/files/*`) and the measurement records in `results/`: CC0 1.0, see [LICENSE-ASSETS](LICENSE-ASSETS). Synthetic ffmpeg output and measurements of it, with no third-party material, so anyone can reuse them without attribution.
+- Generated media (`opus16.*`, `opus2.*`, `*-packets.json`, `assets.js`, `matrix/files/*`) and the measurement records in `results/` and `playback-results/`: CC0 1.0, see [LICENSE-ASSETS](LICENSE-ASSETS). Synthetic ffmpeg output and measurements of it, with no third-party material, so anyone can reuse them without attribution.
