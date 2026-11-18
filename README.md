@@ -123,6 +123,8 @@ node playback.mjs                                 # needs sox and a loopback out
 node playback-table.mjs playback-results/*.json
 ```
 
+By hand. On the same day the two MSE buttons of the published page were clicked in an ordinary Safari 27.2 window on that machine. The 2-channel control was heard and the 16-channel WebM was not, and the page printed the same values as in the automated runs. What it printed is in `playback-results/by-hand/`.
+
 Only Safari was measured this way. As a check on the page itself, Chrome 157.0.8103.79 on the same machine plays the 16-channel clip through both paths in both containers (a duration of about 3 s, `playing` fires, the clip runs to its end, and MSE buffers the whole of it). That run was driven through Playwright with the sound muted, so nothing was recorded and no JSON of it is committed.
 
 ## Regenerating the assets
@@ -147,7 +149,7 @@ Needs ffmpeg with the libopus encoder (`ffmpeg -encoders | grep libopus`) and py
 - `check-playwright.js`: the smoke check described above.
 - `playback.html`: the playback page, one button per clip and path.
 - `playback.mjs`: runs every test on that page in Safari and records the output device.
-- `playback-results/`: what each of those runs recorded, one JSON per run, named by date, OS, browser and time.
+- `playback-results/`: what each of those runs recorded, one JSON per run, named by date, OS, browser and time; `by-hand/` holds what the page printed when a person clicked it.
 - `playback-table.mjs`: prints the playback table from them.
 - `package.json`: `playwright-core`, needed only by `measure.mjs` and `check-playwright.js`; `playback.mjs` needs no package.
 

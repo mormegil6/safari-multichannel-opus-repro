@@ -1,0 +1,134 @@
+{
+ "when": "2026-11-18",
+ "page": "https://mormegil6.github.io/safari-multichannel-opus-repro/playback.html",
+ "how": "an ordinary Safari window, each button clicked by a person who listened; the tests are what the page printed",
+ "macos": "15.8.3",
+ "safari": "27.2",
+ "safariBuild": "20625.2.8.18.4",
+ "queries": {
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15",
+  "MediaSource": true,
+  "ManagedMediaSource": true,
+  "canPlayType webm": "probably",
+  "isTypeSupported webm": true,
+  "canPlayType mp4": "",
+  "isTypeSupported mp4": false
+ },
+ "tests": [
+  {
+   "heardByThePerson": "the tone",
+   "path": "mse",
+   "file": "opus2.webm",
+   "mime": "audio/webm; codecs=\"opus\"",
+   "isTypeSupported": true,
+   "events": [
+    "11 loadstart",
+    "218 loadedmetadata",
+    "240 loadeddata",
+    "240 canplay",
+    "240 canplaythrough",
+    "294 play",
+    "294 playing",
+    "3660 pause",
+    "3660 ended",
+    "4796 abort",
+    "4796 emptied"
+   ],
+   "timeupdates": 14,
+   "addSourceBuffer": "ok",
+   "bytes": 40752,
+   "append": "updateend",
+   "sourceBufferBuffered": [
+    [
+     0,
+     3.014
+    ]
+   ],
+   "endOfStream": "ok",
+   "playPromise": "resolved",
+   "afterPlayCall": {
+    "currentTime": 0,
+    "duration": 3.0135,
+    "readyState": 4,
+    "networkState": 1,
+    "paused": false,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": [
+     [
+      0,
+      3.014
+     ]
+    ]
+   },
+   "mediaSourceReadyState": "ended",
+   "final": {
+    "currentTime": 3.014,
+    "duration": 3.0135,
+    "readyState": 2,
+    "networkState": 1,
+    "paused": true,
+    "ended": true,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": [
+     [
+      0,
+      3.014
+     ]
+    ]
+   }
+  },
+  {
+   "heardByThePerson": "nothing",
+   "path": "mse",
+   "file": "opus16.webm",
+   "mime": "audio/webm; codecs=\"opus\"",
+   "isTypeSupported": true,
+   "events": [
+    "2 loadstart",
+    "202 loadedmetadata",
+    "235 ended",
+    "235 play",
+    "235 waiting",
+    "7733 abort",
+    "7733 emptied"
+   ],
+   "timeupdates": 1,
+   "addSourceBuffer": "ok",
+   "bytes": 84612,
+   "append": "updateend",
+   "sourceBufferBuffered": [],
+   "endOfStream": "ok",
+   "playPromise": "still pending after 3 s",
+   "afterPlayCall": {
+    "currentTime": 0,
+    "duration": 0,
+    "readyState": 1,
+    "networkState": 1,
+    "paused": false,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": []
+   },
+   "mediaSourceReadyState": "ended",
+   "final": {
+    "currentTime": 0,
+    "duration": 0,
+    "readyState": 1,
+    "networkState": 1,
+    "paused": false,
+    "ended": false,
+    "error": null,
+    "decodedBytes": null,
+    "audioTracks": 1,
+    "buffered": []
+   }
+  }
+ ]
+}
